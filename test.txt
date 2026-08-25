@@ -1,0 +1,12 @@
+Write 'Checked' if You can successfully clone this project and see this project
+and after writing 'Checked', Push the project so others can see it.
+
+Sayem - Checked
+Pritam  - Checked
+Kabir -
+Samania -
+
+
+superuser name: sayem
+email: notreal@gmail.com
+password: 123
