@@ -26,3 +26,18 @@ class User(models.Model):
     def updateProfile(self, **data):
         """Update user profile function here"""
         print("data update code, then maybe return Boolean True if updated, or return False if unsuccessful for some reasone")
+
+
+class Staff(User):
+    role = models.CharField(max_length=255)
+    availabilityStatus = models.BooleanField(default=True)
+    currentAssignment = models.CharField(max_length=255)
+    department = models.CharField(max_length=255)
+    accessLevel = models.CharField(max_length=255)
+
+    def allocateRoom(self):
+        pass
+    def dischargePatient(self):
+        pass
+    def manageSerialQueue(self):
+        pass
