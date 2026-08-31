@@ -14,9 +14,9 @@ def register_staff(request):
             form.save()
             messages.success(request, "Staff member registered successfully!")
             return redirect('home')  # Redirect to your desired URL
-        test_text = "huh? this is not inside else block"
+        # test_text = "huh? this is not inside else block"
     else:
         form = StaffRegistrationForm()
-        test_text = "can you see this? views.py inside staffs app"
+        # test_text = "can you see this? views.py inside staffs app"
 
-    return render(request, 'register-staff.html', {'form': form, 'test_text': test_text})
+    return render(request, 'register-staff.html', {'form': form})

@@ -1,19 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Staff Registration</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %} Staff Registration {% endblock %}
+
+{% block content %}
     <h1> Staff Registration Page </h1>
-
-    {{ test_text }}
-    whyy??
-
     <form method="POST">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">Register Staff</button>
     </form>
-</body>
-</html>
+{% endblock %}

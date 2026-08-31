@@ -2,9 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>{% block title %}title here, replace it in the child file {% endblock %}</title>
 </head>
 <body>
-
+    <nav> Nav Bar </nav>
+    <hr>
+    <main>
+        {% block content %}
+        content here, replace it with page's content
+        {% endblock %}
+    </main>
 </body>
 </html>
