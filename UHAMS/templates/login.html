@@ -4,4 +4,10 @@
 
 {% block content %}
     <h1>Login Page</h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Log In</button>
+    </form>
+    <p>Don't have an account? <a href="{% url 'register_staff' %}">Sign up here</a></p>
 {% endblock %}

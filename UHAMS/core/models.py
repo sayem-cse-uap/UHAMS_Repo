@@ -12,3 +12,4 @@ class User(AbstractUser):
 
     # username, email, password already is in AbstractUser
     phone = models.CharField(max_length=20)
+
