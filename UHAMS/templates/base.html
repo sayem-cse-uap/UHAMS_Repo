@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +7,22 @@
     <title>{% block title %}title here, replace it in the child file {% endblock %}</title>
 </head>
 <body>
-    <nav> Nav Bar </nav>
+    <header>
+        <a href="#" class="hospital-name">HN-UHAMS</a>
+        <nav>
+            <ul class="menu">
+                <li><a href="#">Overview</a></li>
+                <li><a href="#">Analytics</a></li>
+                <li><a href="#">Settings</a></li>
+            </ul>
+
+            <div class="user-profile">
+                <img src="{% static 'images/horse-profile-pic.jpg' %}" width="20px">
+                <span class="user-name">Ahmed</span>
+            </div>
+        </nav>
+    </header>
+
     <hr>
     <main>
         {% block content %}
