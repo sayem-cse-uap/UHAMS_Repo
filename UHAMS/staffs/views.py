@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+
+from core.context_processors import custom_login_required
 from .forms import StaffRegistrationForm
 
 def register_staff(request):
@@ -12,6 +14,10 @@ def register_staff(request):
         # test_text = "huh? this is not inside else block"
     else:
         form = StaffRegistrationForm()
-        # test_text = "can you see this? views.py inside staffs app"
+        # test_text = "can you see this? views.py inside staffs-templates app"
 
-    return render(request, 'register-staff.html', {'form': form})
+    return render(request, 'staffs-templates/register-staff.html', {'form': form})
+
+@custom_login_required
+def staff_dashboard(request):
+    return render(request,'staffs-templates/staff-dashboard.html')

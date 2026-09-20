@@ -10,10 +10,10 @@
 <body>
     <header>
         <nav>
-            <a href="#" class="hospital-name">HN-UHAMS</a>
+            <a href="{% url 'home' %}" class="hospital-name">HN-UHAMS</a>
 
             <ul class="menu">
-                <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li><a href="{% url 'staff-dashboard' %}">Staff Dashboard</a></li>
                 <li><a href="#">Analytics</a></li>
                 <li><a href="#">Settings</a></li>
             </ul>

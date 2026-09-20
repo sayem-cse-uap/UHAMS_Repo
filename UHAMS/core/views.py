@@ -2,6 +2,8 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect
+
+from .context_processors import custom_login_required
 from .models import User
 from django.contrib.auth.hashers import check_password
 
@@ -11,13 +13,6 @@ from django.contrib import messages
 
 from functools import wraps
 
-def custom_login_required(view_func):
-    @wraps(view_func)
-    def wrapper(request, *args, **kwargs):
-        if 'user_id' not in request.session:
-            return redirect('login')  # Redirect to your login URL name
-        return view_func(request, *args, **kwargs)
-    return wrapper
 
 # Usage in views.py:
 # @custom_login_required
@@ -25,10 +20,8 @@ def custom_login_required(view_func):
 
 # Create your views here.
 # @login_required
-@custom_login_required
-def dashboard(request):
-    return render(request,'dashboard.html')
-
+def home(request):
+    return render(request, 'home.html')
 
 def loginView(request):
     if request.method == 'POST':
@@ -44,7 +37,7 @@ def loginView(request):
                 # Check password (use check_password if hashed, or direct comparison if plain text)
                 if check_password(password, user.password) or user.password == password:
                     request.session['user_id'] = user.id
-                    return redirect('dashboard')
+                    return redirect('staff-dashboard')
                 else:
                     form.add_error('password', 'Incorrect password.')
 
@@ -60,6 +53,9 @@ def logoutView(request):
     request.session.flush()
     messages.info(request, "You have been logged out.")
     return redirect('login')
+
+def register_new_user(request):
+    return render(request, 'register.html')
 
 # def loginView(request):
 #     if request.method == 'POST':

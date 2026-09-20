@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 
-{% block title %} UHAMS - Dashboard {% endblock %}
+{% block title %} UHAMS - Staff Dashboard {% endblock %}
 
 {% block content %}
-    <h1>Dashboard Page, {{ logged_in_user.username }}</h1>
+    <h1>Staff Dashboard Page, {{ logged_in_user.username }}</h1>
     <p> Welecome to UHAMS, we are still in development though.. but welcome anyways.</p>
 <!--    <a href="{% url 'register_staff' %}">Register Staff</a>-->
     <a href="{% url 'logout' %}">Logout</a>
