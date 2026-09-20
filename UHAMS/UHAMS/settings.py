@@ -54,13 +54,13 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'UHAMS.urls'
 
 # Where to send users after a successful login
-LOGIN_REDIRECT_URL = 'dashboard'
+# LOGIN_REDIRECT_URL = 'dashboard'
 
 # Where to send logged-out users
-LOGOUT_REDIRECT_URL = 'login'
+# LOGOUT_REDIRECT_URL = 'login'
 
 # Where @login_required redirects unauthenticated users
-LOGIN_URL = 'login'
+# LOGIN_URL = 'login'
 
 
 TEMPLATES = [

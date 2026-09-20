@@ -5,11 +5,13 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}title here, replace it in the child file {% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
     <header>
-        <a href="#" class="hospital-name">HN-UHAMS</a>
         <nav>
+            <a href="#" class="hospital-name">HN-UHAMS</a>
+
             <ul class="menu">
                 <li><a href="#">Overview</a></li>
                 <li><a href="#">Analytics</a></li>
@@ -29,5 +31,7 @@
         content here, replace it with page's content
         {% endblock %}
     </main>
+
+    <script src="{% static 'js/main.js' %}"></script>
 </body>
 </html>

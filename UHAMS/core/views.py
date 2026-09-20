@@ -27,7 +27,10 @@ def custom_login_required(view_func):
 # @login_required
 @custom_login_required
 def dashboard(request):
-    return render(request,'dashboard.html')
+    user_id = request.session.get('user_id')
+    user = User.objects.get(id=user_id)
+
+    return render(request,'dashboard.html', {'user': user})
 
 
 def loginView(request):
