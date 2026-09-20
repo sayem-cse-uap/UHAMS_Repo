@@ -8,7 +8,7 @@ def register_staff(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Staff member registered successfully!")
-            return redirect('home')  # Redirect to your desired URL
+            return redirect('login')  # Redirect to your desired URL
         # test_text = "huh? this is not inside else block"
     else:
         form = StaffRegistrationForm()
