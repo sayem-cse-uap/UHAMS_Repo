@@ -13,14 +13,16 @@
             <a href="#" class="hospital-name">HN-UHAMS</a>
 
             <ul class="menu">
-                <li><a href="#">Overview</a></li>
+                <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
                 <li><a href="#">Analytics</a></li>
                 <li><a href="#">Settings</a></li>
             </ul>
 
             <div class="user-profile">
+            {% if logged_in_user %}
                 <img src="{% static 'images/horse-profile-pic.jpg' %}" width="20px">
-                <span class="user-name">Ahmed</span>
+                <span class="user-name">{{ logged_in_user.username }}</span>
+            {% endif %}
             </div>
         </nav>
     </header>

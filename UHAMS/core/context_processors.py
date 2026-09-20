@@ -1,0 +1,12 @@
+from .models import User
+def load_logged_in_user(request):
+    user_id = request.session.get('user_id')
+    if user_id:
+        try:
+            # Fetch the user using the custom session ID
+            user = User.objects.get(id=user_id)
+            return {'logged_in_user': user}
+        except User.DoesNotExist:
+            pass
+
+    return {'logged_in_user': None}
