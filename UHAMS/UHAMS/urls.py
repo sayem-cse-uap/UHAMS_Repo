@@ -21,5 +21,6 @@ urlpatterns = [
     # Built-in auth URLs (login, logout, password reset)
     # path('accounts/', include('django.contrib.auth.urls')),
     path('', include('core.urls')),
-    path('staff/', include('staffs.urls')),
+    path('staffs/', include('staffs.urls')),
+    path('patients/', include('patients.urls')),
 ]

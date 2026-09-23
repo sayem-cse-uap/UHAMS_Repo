@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block title %} UHAMS - Patient Dashboard {% endblock %}
+
+{% block content %}
+    <h1>Patient Dashboard Page, {{ logged_in_user.username }}</h1>
+    <p> Welecome to UHAMS, we are still in development though.. but welcome anyways.</p>
+    <a href="{% url 'logout' %}">Logout</a>
+{% endblock %}

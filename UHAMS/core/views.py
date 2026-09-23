@@ -37,7 +37,10 @@ def loginView(request):
                 # Check password (use check_password if hashed, or direct comparison if plain text)
                 if check_password(password, user.password) or user.password == password:
                     request.session['user_id'] = user.id
-                    return redirect('staff-dashboard')
+                    if user.Role.PATIENT == "PATIENT":
+                        return redirect('patient-dashboard')
+                    else:
+                        return redirect('staff-dashboard')
                 else:
                     form.add_error('password', 'Incorrect password.')
 
