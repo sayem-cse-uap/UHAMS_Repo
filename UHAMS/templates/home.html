@@ -1,13 +1,12 @@
 {% extends 'base.html' %}
 
-{% block title %}Home{% endblock %}
+{% block title %} Home Page {% endblock %}
 
 {% block content %}
-    <h1>Welcome to HN-UHAMS</h1>
+    <h1>Home Page</h1>
     {% if logged_in_user %}
-        <p>You are signed in as <strong>{{ logged_in_user.username }}</strong>.</p>
-        <a class="btn btn-secondary" href="{% url 'logout' %}">Logout</a>
+    <a href="{% url 'logout' %}">Logout</a>
     {% else %}
-        <a class="btn" href="{% url 'login' %}">Login</a>
+    <a href="{% url 'login' %}">Login</a>
     {% endif %}
 {% endblock %}

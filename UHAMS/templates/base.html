@@ -1,51 +1,40 @@
-{% load static %}<!DOCTYPE html>
+{% load static %}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}UHAMS{% endblock %} | HN-UHAMS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}title here, replace it in the child file {% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <a class="skip-link" href="#main-content">Skip to main content</a>
-
-    <header class="site-header">
-        <nav aria-label="Main navigation">
+    <header>
+        <nav>
             <a href="{% url 'home' %}" class="hospital-name">HN-UHAMS</a>
 
-            {% if logged_in_user %}
             <ul class="menu">
                 <li><a href="{% url 'staff-dashboard' %}">Staff Dashboard</a></li>
                 <li><a href="#">Analytics</a></li>
                 <li><a href="#">Settings</a></li>
             </ul>
-            {% endif %}
 
             <div class="user-profile">
-                {% if logged_in_user %}
-                <img class="user-avatar"
-                     src="{% static 'images/horse-profile-pic.jpg' %}"
-                     alt="Profile picture of {{ logged_in_user.username }}"
-                     width="32" height="32">
+            {% if logged_in_user %}
+                <img src="{% static 'images/horse-profile-pic.jpg' %}" width="20px">
                 <span class="user-name">{{ logged_in_user.username }}</span>
-                {% endif %}
+            {% endif %}
             </div>
         </nav>
     </header>
 
-    <main id="main-content">
-        {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-            <li class="{{ message.tags }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-
-        {% block content %}{% endblock %}
+    <hr>
+    <main>
+        {% block content %}
+        content here, replace it with page's content
+        {% endblock %}
     </main>
 
-    <script src="{% static 'js/main.js' %}" defer></script>
+    <script src="{% static 'js/main.js' %}"></script>
 </body>
 </html>

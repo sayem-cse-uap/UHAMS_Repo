@@ -1,4 +1,0 @@
-{# Shared dashboard body. Usage: {% include 'partials/dashboard-welcome.html' with role='Doctor' %} #}
-<h1>{{ role }} Dashboard{% if logged_in_user %}, {{ logged_in_user.username }}{% endif %}</h1>
-<p>Welcome to UHAMS. We are still in development, but welcome anyway.</p>
-<a class="btn btn-secondary" href="{% url 'logout' %}">Logout</a>
