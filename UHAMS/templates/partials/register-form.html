@@ -1,0 +1,7 @@
+{# Shared registration form. Usage: {% include 'partials/register-form.html' with role='Doctor' %} #}
+<h1>{{ role }} Registration</h1>
+<form method="post" class="form-card">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Register {{ role }}</button>
+</form>

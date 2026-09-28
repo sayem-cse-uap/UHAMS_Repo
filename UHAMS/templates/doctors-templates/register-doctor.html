@@ -1,12 +1,7 @@
 {% extends 'base.html' %}
 
-{% block title %} Doctor Registration {% endblock %}
+{% block title %}Doctor Registration{% endblock %}
 
 {% block content %}
-    <h1> Doctor Registration Page </h1>
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Register Doctor</button>
-    </form>
+    {% include 'partials/register-form.html' with role='Doctor' %}
 {% endblock %}
