@@ -7,4 +7,45 @@
     <p> Welecome to UHAMS, we are still in development though.. but welcome anyways.</p>
 <!--    <a href="{% url 'register_staff' %}">Register Staff</a>-->
     <a href="{% url 'logout' %}">Logout</a>
+<h1> All Appointments </h1>
+<ul>
+    <hr>
+        {% for item  in appointments %}
+        <li>{{ item.doctor.user.username}} </li>
+        <li>Patient: {{item.patient.user.username}}</li>
+        <li>Room: {{item.room_number}}</li>
+<hr>
+        {% endfor %}
+    </ul>
+
+<h1> All Doctor Profile </h1>
+<ul>
+    <hr>
+        {% for item  in doctors %}
+        <li>{{ item.user.username}} </li>
+
+<hr>
+        {% endfor %}
+    </ul>
+<h1>  All Patient  Profile </h1>
+<ul>
+    <hr>
+        {% for item  in patients %}
+        <li>{{ item.user.username}} </li>
+
+<hr>
+     {% endfor %}
+</ul>
+
+<h1>  All Staff  Profile </h1>
+<ul>
+    <hr>
+        {% for item  in staffs %}
+        <li>{{ item.user.username}} </li>
+
+<hr>
+     {% endfor %}
+</ul>
+
+
 {% endblock %}

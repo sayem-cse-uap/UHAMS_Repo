@@ -1,7 +1,13 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 
+from appointments.models import Appointment
 from core.context_processors import custom_login_required
+from doctors.models import DoctorProfile
+from patients.models import PatientProfile
+from .models import StaffProfile
+
+
 from .forms import StaffRegistrationForm
 
 def register_staff(request):
@@ -18,6 +24,15 @@ def register_staff(request):
 
     return render(request, 'staffs-templates/register-staff.html', {'form': form})
 
+
 @custom_login_required
 def staff_dashboard(request):
-    return render(request,'staffs-templates/staff-dashboard.html')
+    appointments = Appointment.objects.all()
+    doctors = DoctorProfile.objects.all()
+    patients = PatientProfile.objects.all()
+    staffs= StaffProfile.objects.all()
+
+
+
+
+    return render(request,'staffs-templates/staff-dashboard.html', {'appointments': appointments,'doctors': doctors,'patients': patients,'staffs': staffs})
