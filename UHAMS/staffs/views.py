@@ -32,7 +32,4 @@ def staff_dashboard(request):
     patients = PatientProfile.objects.all()
     staffs= StaffProfile.objects.all()
 
-
-
-
     return render(request,'staffs-templates/staff-dashboard.html', {'appointments': appointments,'doctors': doctors,'patients': patients,'staffs': staffs})
