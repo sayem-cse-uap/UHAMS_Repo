@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %} UHAMS - Request Appointment {% endblock %}
+
+{% block content %}
+    <h1>Request an Appointment</h1>
+    <p>
+        <strong>{{ doctor.user.get_full_name|default:doctor.user.username }}</strong>
+        &mdash; {{ doctor.specialization }} (Fee: {{ doctor.consultationFee }})
+    </p>
+
+    <h3>Doctor's weekly schedule</h3>
+    <ul>
+        {% for block in blocks %}
+        <li>{{ block.get_day_display }}: {{ block.start_time|time:"h:i A" }} - {{ block.end_time|time:"h:i A" }}</li>
+        {% empty %}
+        <li>This doctor has not published a schedule yet. You can still send a request.</li>
+        {% endfor %}
+    </ul>
+    <p>The doctor will confirm your request and assign you one of these time blocks.</p>
+
+    <form method="post" class="form-block">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Send Request</button>
+    </form>
+    <p><a href="{% url 'patient-dashboard' %}">Back to dashboard</a></p>
+{% endblock %}

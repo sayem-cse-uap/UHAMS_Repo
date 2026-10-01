@@ -14,6 +14,12 @@
             <a href="{% url 'home' %}" class="hospital-name">HN-UHAMS</a>
 
             <ul class="menu">
+                {% if logged_in_user.role == 'PATIENT' %}
+                <li><a href="{% url 'patient-dashboard' %}">Find a Doctor</a></li>
+                {% elif logged_in_user.role == 'DOCTOR' %}
+                <li><a href="{% url 'doctor-dashboard' %}">Appointment Requests</a></li>
+                <li><a href="{% url 'doctor-schedule' %}">My Schedule</a></li>
+                {% endif %}
                 <li><a href="{% url 'staff-dashboard' %}">Staff Dashboard</a></li>
                 <li><a href="#">Analytics</a></li>
                 <li><a href="#">Settings</a></li>
@@ -30,6 +36,13 @@
 
     <hr>
     <main>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li class="message {{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
         {% block content %}
         content here, replace it with page's content
         {% endblock %}

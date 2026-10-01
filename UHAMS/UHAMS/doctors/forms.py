@@ -2,7 +2,7 @@ from django import forms
 from django.db import transaction
 
 from core.models import User
-from doctors.models import DoctorProfile
+from doctors.models import DoctorProfile, TimeBlock
 
 
 class DoctorRegistrationForm(forms.Form):
@@ -55,3 +55,30 @@ class DoctorRegistrationForm(forms.Form):
                 consultationFee=self.cleaned_data['consultationFee']
             )
             return doctor_profile
+
+
+class TimeBlockForm(forms.ModelForm):
+    class Meta:
+        model = TimeBlock
+        fields = ['day', 'start_time', 'end_time']
+        widgets = {
+            'start_time': forms.TimeInput(attrs={'type': 'time'}),
+            'end_time': forms.TimeInput(attrs={'type': 'time'}),
+        }
+
+    def __init__(self, *args, doctor=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.doctor = doctor
+
+    def clean(self):
+        cleaned = super().clean()
+        day, start, end = cleaned.get('day'), cleaned.get('start_time'), cleaned.get('end_time')
+        if day and start and end:
+            if end <= start:
+                raise forms.ValidationError("End time must be after start time.")
+            overlap = TimeBlock.objects.filter(
+                doctor=self.doctor, day=day, start_time__lt=end, end_time__gt=start
+            ).exists()
+            if overlap:
+                raise forms.ValidationError("This overlaps with an existing time block on that day.")
+        return cleaned

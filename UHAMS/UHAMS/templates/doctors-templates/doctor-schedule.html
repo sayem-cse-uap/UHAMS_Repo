@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %} UHAMS - My Schedule {% endblock %}
+
+{% block content %}
+    <h1>My Schedule</h1>
+
+    <table class="data-table">
+        <thead><tr><th>Day</th><th>Start</th><th>End</th></tr></thead>
+        <tbody>
+        {% for block in blocks %}
+            <tr>
+                <td>{{ block.get_day_display }}</td>
+                <td>{{ block.start_time|time:"h:i A" }}</td>
+                <td>{{ block.end_time|time:"h:i A" }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="3">No time blocks yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Add a time block</h2>
+    <form method="post" class="form-block">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Add Time Block</button>
+    </form>
+    <p><a href="{% url 'doctor-dashboard' %}">Back to dashboard</a></p>
+{% endblock %}

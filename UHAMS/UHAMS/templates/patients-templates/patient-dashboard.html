@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %} UHAMS - Patient Dashboard {% endblock %}
+
+{% block content %}
+    <h1>Patient Dashboard Page, {{ logged_in_user.username }}</h1>
+    <p> Welecome to UHAMS, we are still in development though.. but welcome anyways.</p>
+    <a href="{% url 'logout' %}">Logout</a>
+
+    <h2>My Appointments</h2>
+    {% if appointments %}
+    <table class="data-table">
+        <thead>
+            <tr><th>Doctor</th><th>Status</th><th>Date</th><th>Time</th><th>Room</th></tr>
+        </thead>
+        <tbody>
+        {% for appt in appointments %}
+            <tr>
+                <td>{{ appt.doctor.user.get_full_name|default:appt.doctor.user.username }} ({{ appt.doctor.specialization }})</td>
+                <td>
+                    {% if appt.status == 'PENDING_CONFIRMATION' %}<span class="badge">Waiting for doctor's confirmation</span>
+                    {% elif appt.status == 'DONE' %}<span class="badge done">{{ appt.get_status_display }}</span>
+                    {% else %}<span class="badge confirmed">{{ appt.get_status_display }}</span>{% endif %}
+                </td>
+                {% if appt.status == 'PENDING_CONFIRMATION' %}
+                    <td>Requested: {{ appt.date|date:"D, d M Y" }}</td>
+                    <td>Not assigned yet</td>
+                    <td>-</td>
+                {% else %}
+                    <td>{{ appt.date|date:"D, d M Y" }}</td>
+                    <td>{% if appt.time_block %}{{ appt.time_block.start_time|time:"h:i A" }} - {{ appt.time_block.end_time|time:"h:i A" }}{% else %}Not assigned yet{% endif %}</td>
+                    <td>{{ appt.room_number }}</td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>You have no appointments yet. Pick a doctor below to request one.</p>
+    {% endif %}
+
+    <h2>Doctors</h2>
+    {% if doctors %}
+    <table class="data-table">
+        <thead>
+            <tr><th>Doctor</th><th>Specialization</th><th>Fee</th><th>Available</th><th></th></tr>
+        </thead>
+        <tbody>
+        {% for doc in doctors %}
+            <tr>
+                <td>{{ doc.user.get_full_name|default:doc.user.username }}</td>
+                <td>{{ doc.specialization }}</td>
+                <td>{{ doc.consultationFee }}</td>
+                <td>
+                    {% for block in doc.timeblock_set.all %}
+                        {{ block.get_day_display }} {{ block.start_time|time:"h:i A" }}-{{ block.end_time|time:"h:i A" }}<br>
+                    {% empty %}
+                        Schedule not set yet
+                    {% endfor %}
+                </td>
+                <td><a class="btn-link" href="{% url 'book-appointment' doc.id %}">Request Appointment</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No doctors are registered yet.</p>
+    {% endif %}
+{% endblock %}

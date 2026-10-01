@@ -25,6 +25,7 @@ class Appointment(models.Model):
     time_block = models.ForeignKey(TimeBlock, on_delete=models.CASCADE, null=True, blank=True)
     date = models.DateField(default=timezone.now)
     room_number = models.CharField(max_length=10, default="000")
+    reason = models.TextField(blank=True, default="")
 
     def clean(self):
         super().clean()
