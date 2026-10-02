@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %} UHAMS - Ambulance {{ ambulance.ambulance_id }} {% endblock %}
+
+{% block content %}
+    <h1>Ambulance {{ ambulance.ambulance_id }}</h1>
+
+    <ul>
+        <li>Registration: {{ ambulance.registration_number }}</li>
+        <li>Model: {{ ambulance.model_name|default:"-" }}</li>
+        <li>Type: {{ ambulance.get_vehicle_type_display }}</li>
+        <li>Capacity: {{ ambulance.capacity }}</li>
+        <li>Status: {{ ambulance.get_status_display }}</li>
+        <li>Last service: {{ ambulance.last_service_date|default:"-" }}</li>
+        <li>
+            Driver:
+            {% if ambulance.driver %}
+                {{ ambulance.driver.user.get_full_name|default:ambulance.driver.user.username }}
+                (License: {{ ambulance.driver.driver_license_number }})
+            {% else %}
+                Unassigned
+            {% endif %}
+        </li>
+        <li>Equipment notes: {{ ambulance.equipment_notes|default:"-" }}</li>
+    </ul>
+
+    <h3>Update Status</h3>
+    <form method="POST" action="{% url 'update-ambulance-status' ambulance.pk %}">
+        {% csrf_token %}
+        {{ status_form.as_p }}
+        <button type="submit">Update Status</button>
+    </form>
+
+    {% if can_manage %}
+    <p>
+        <a href="{% url 'edit-ambulance' ambulance.pk %}">Edit</a> |
+        <a href="{% url 'delete-ambulance' ambulance.pk %}">Delete</a> |
+        <a href="{% url 'ambulance-list' %}">Back to list</a>
+    </p>
+    {% else %}
+    <p><a href="{% url 'driver-dashboard' %}">Back to dashboard</a></p>
+    {% endif %}
+{% endblock %}

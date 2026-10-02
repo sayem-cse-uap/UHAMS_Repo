@@ -7,4 +7,13 @@
     <p> Welecome to UHAMS, we are still in development though.. but welcome anyways.</p>
 <!--    <a href="{% url 'register_staff' %}">Register Staff</a>-->
     <a href="{% url 'logout' %}">Logout</a>
+    <h2>My Ambulance</h2>
+    {% if logged_in_user.driverprofile.ambulance %}
+        <p>
+            <a href="{% url 'ambulance-detail' logged_in_user.driverprofile.ambulance.pk %}">{{ logged_in_user.driverprofile.ambulance.ambulance_id }}</a>
+            - {{ logged_in_user.driverprofile.ambulance.get_status_display }}
+        </p>
+    {% else %}
+        <p>No ambulance assigned yet.</p>
+    {% endif %}
 {% endblock %}

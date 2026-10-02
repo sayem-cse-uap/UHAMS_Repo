@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %} UHAMS - Ambulances {% endblock %}
+
+{% block content %}
+    <h1>Ambulances</h1>
+    <p>Total: {{ total_count }} | Available: {{ available_count }}</p>
+
+    <form method="GET">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search ID, plate, model or driver">
+        <select name="status">
+            <option value="">All statuses</option>
+            {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if value == selected_status %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filter</button>
+        <a href="{% url 'ambulance-list' %}">Reset</a>
+    </form>
+
+    <p><a href="{% url 'create-ambulance' %}">+ Add Ambulance</a></p>
+
+    <table border="1" cellpadding="6" cellspacing="0">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Registration</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Driver</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ambulance in ambulances %}
+            <tr>
+                <td><a href="{% url 'ambulance-detail' ambulance.pk %}">{{ ambulance.ambulance_id }}</a></td>
+                <td>{{ ambulance.registration_number }}</td>
+                <td>{{ ambulance.get_vehicle_type_display }}</td>
+                <td>{{ ambulance.get_status_display }}</td>
+                <td>{% if ambulance.driver %}{{ ambulance.driver.user.username }}{% else %}Unassigned{% endif %}</td>
+                <td>
+                    <a href="{% url 'edit-ambulance' ambulance.pk %}">Edit</a> |
+                    <a href="{% url 'delete-ambulance' ambulance.pk %}">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">No ambulances found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

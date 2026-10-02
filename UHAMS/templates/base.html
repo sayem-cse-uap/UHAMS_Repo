@@ -19,6 +19,11 @@
                 {% elif logged_in_user.role == 'DOCTOR' %}
                 <li><a href="{% url 'doctor-dashboard' %}">Appointment Requests</a></li>
                 <li><a href="{% url 'doctor-schedule' %}">My Schedule</a></li>
+                {% elif logged_in_user.role == 'DRIVER' %}
+                <li><a href="{% url 'my-ambulance' %}">My Ambulance</a></li>
+                {% endif %}
+                {% if logged_in_user.role == 'STAFF' %}
+                <li><a href="{% url 'ambulance-list' %}">Ambulances</a></li>
                 {% endif %}
                 <li><a href="{% url 'staff-dashboard' %}">Staff Dashboard</a></li>
                 <li><a href="#">Analytics</a></li>

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %} UHAMS - Delete Ambulance {% endblock %}
+
+{% block content %}
+    <h1>Delete Ambulance</h1>
+    <p>Are you sure you want to delete ambulance <strong>{{ ambulance.ambulance_id }}</strong> ({{ ambulance.registration_number }})?</p>
+    {% if ambulance.driver %}
+    <p>Its assigned driver ({{ ambulance.driver.user.username }}) will be left without an ambulance.</p>
+    {% endif %}
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit">Yes, delete</button>
+        <a href="{% url 'ambulance-detail' ambulance.pk %}">Cancel</a>
+    </form>
+{% endblock %}
