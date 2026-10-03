@@ -4,10 +4,10 @@
 
 {% block content %}
     <h1>Manage Staff</h1>
-    <p><a class="btn-link" href="{% url 'register_staff' %}">Register new staff member</a>
-       <a href="{% url 'staff-dashboard' %}">Back to dashboard</a></p>
+    <div class="actions"><a class="btn-link" href="{% url 'staffs:register' %}">Register new staff member</a>
+       <a href="{% url 'staffs:dashboard' %}">Back to dashboard</a></div>
 
-    <form method="get">
+    <form method="get" class="filter-bar">
         <input type="text" name="q" value="{{ query }}" placeholder="Search name, title or department">
         <select name="role">
             <option value="">All roles</option>
@@ -25,7 +25,7 @@
     </form>
 
     {% if staff_members %}
-    <table class="data-table">
+    <div class="table-wrap"><table class="data-table">
         <thead>
             <tr><th>Name</th><th>Title</th><th>Role</th><th>Department</th><th>Access</th><th>Salary</th><th>Available</th><th>Assignment</th><th></th></tr>
         </thead>
@@ -40,11 +40,11 @@
                 <td>{{ s.salary }}</td>
                 <td>{{ s.availability_status|yesno:"Yes,No" }}</td>
                 <td>{{ s.current_assignment|default:"-" }}</td>
-                <td><a class="btn-link" href="{% url 'manage-staff-detail' s.pk %}">Manage</a></td>
+                <td><a class="btn-link" href="{% url 'staffs:member-detail' s.pk %}">Manage</a></td>
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
     {% else %}
     <p>No staff members match.</p>
     {% endif %}

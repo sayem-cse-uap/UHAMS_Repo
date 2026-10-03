@@ -15,11 +15,9 @@ def register_doctor(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Doctor registered successfully!")
-            return redirect('login')  # Redirect to your desired URL
-        # test_text = "huh? this is not inside else block"
+            return redirect('core:login')
     else:
         form = DoctorRegistrationForm()
-        # test_text = "can you see this? views.py inside staffs-templates app"
 
     return render(request, 'doctors-templates/register-doctor.html', {'form': form})
 
@@ -37,7 +35,7 @@ def doctor_dashboard(request):
     doctor = _current_doctor(request)
     if doctor is None:
         messages.error(request, "Only doctors can open the doctor dashboard.")
-        return redirect('patient-dashboard')
+        return redirect('patients:dashboard')
 
     base = Appointment.objects.filter(doctor=doctor).select_related('patient__user', 'time_block')
     pending = base.filter(status=Appointment.Status.PENDING_CONFIRMATION).order_by('date', 'id')
@@ -54,7 +52,7 @@ def doctor_schedule(request):
     doctor = _current_doctor(request)
     if doctor is None:
         messages.error(request, "Only doctors can manage a schedule.")
-        return redirect('patient-dashboard')
+        return redirect('patients:dashboard')
 
     if request.method == 'POST':
         form = TimeBlockForm(request.POST, doctor=doctor)
@@ -63,7 +61,7 @@ def doctor_schedule(request):
             block.doctor = doctor
             block.save()
             messages.success(request, "Time block added to your schedule.")
-            return redirect('doctor-schedule')
+            return redirect('doctors:schedule')
     else:
         form = TimeBlockForm(doctor=doctor)
 
@@ -80,16 +78,16 @@ def confirm_appointment(request, appointment_id):
     doctor = _current_doctor(request)
     if doctor is None:
         messages.error(request, "Only doctors can confirm appointments.")
-        return redirect('patient-dashboard')
+        return redirect('patients:dashboard')
 
     appointment = get_object_or_404(Appointment, pk=appointment_id, doctor=doctor)
     if appointment.status != Appointment.Status.PENDING_CONFIRMATION:
         messages.info(request, "This appointment has already been confirmed.")
-        return redirect('doctor-dashboard')
+        return redirect('doctors:dashboard')
 
     if not doctor.timeblock_set.exists():
         messages.error(request, "Add at least one time block to your schedule before confirming.")
-        return redirect('doctor-schedule')
+        return redirect('doctors:schedule')
 
     if request.method == 'POST':
         form = AppointmentConfirmForm(request.POST, appointment=appointment)
@@ -101,7 +99,7 @@ def confirm_appointment(request, appointment_id):
             appointment.status = Appointment.Status.CONFIRMED
             appointment.save()
             messages.success(request, "Appointment confirmed and time assigned.")
-            return redirect('doctor-dashboard')
+            return redirect('doctors:dashboard')
     else:
         form = AppointmentConfirmForm(
             appointment=appointment,

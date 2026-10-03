@@ -19,10 +19,10 @@
     </ul>
     <p>The doctor will confirm your request and assign you one of these time blocks.</p>
 
-    <form method="post" class="form-block">
+    <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">Send Request</button>
     </form>
-    <p><a href="{% url 'patient-dashboard' %}">Back to dashboard</a></p>
+    <p><a href="{% url 'patients:dashboard' %}">Back to dashboard</a></p>
 {% endblock %}

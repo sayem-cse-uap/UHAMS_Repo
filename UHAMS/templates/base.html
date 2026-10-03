@@ -1,64 +1,85 @@
-{% load static %}
-
-<!DOCTYPE html>
+{% load static %}<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}title here, replace it in the child file {% endblock %}</title>
+    <title>{% block title %}HN-UHAMS{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-<body>
-    <header>
-        <nav>
-            <a href="{% url 'home' %}" class="hospital-name">HN-UHAMS</a>
+<body class="{% if logged_in_user %}app{% endif %} {% block body_class %}{% endblock %}">
+    <a class="skip-link" href="#main">Skip to content</a>
 
-            <ul class="menu">
-                {% if logged_in_user.role == 'PATIENT' %}
-                <li><a href="{% url 'patient-dashboard' %}">Find a Doctor</a></li>
-                {% elif logged_in_user.role == 'DOCTOR' %}
-                <li><a href="{% url 'doctor-dashboard' %}">Appointment Requests</a></li>
-                <li><a href="{% url 'doctor-schedule' %}">My Schedule</a></li>
-                {% elif logged_in_user.role == 'DRIVER' %}
-                <li><a href="{% url 'my-ambulance' %}">My Ambulance</a></li>
-                {% endif %}
-                {% if logged_in_user.role == 'STAFF' %}
-                <li><a href="{% url 'staff-dashboard' %}">Staff Dashboard</a></li>
-                <li><a href="{% url 'ambulance-list' %}">Ambulances</a></li>
-                <li><a href="{% url 'call-list' %}">Emergency Calls</a></li>
-                <li><a href="{% url 'my-vacations' %}">My Vacations</a></li>
-                {% if is_staff_manager %}
-                <li><a href="{% url 'manage-staff' %}">Manage Staff</a></li>
-                <li><a href="{% url 'manage-vacations' %}">Vacation Requests</a></li>
-                {% endif %}
-                {% endif %}
-                {% if logged_in_user %}
-                <li><a href="{% url 'settings' %}">Settings</a></li>
-                {% endif %}
-            </ul>
+    {% if logged_in_user %}
+    {% with current=request.resolver_match.view_name %}
+    <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+        <a href="{% url 'core:home' %}" class="brand">HN-UHAMS<small>Hospital management</small></a>
 
-            <div class="user-profile">
-            {% if logged_in_user %}
-                <img src="{% static 'images/horse-profile-pic.jpg' %}" width="20px">
-                <a class="user-name" href="{% url 'settings' %}">{{ logged_in_user.username }}</a>
+        <ul class="menu">
+            {% if logged_in_user.role == 'PATIENT' %}
+            <li><a href="{% url 'patients:dashboard' %}" {% if current == 'patients:dashboard' or current == 'patients:book-appointment' %}class="active" aria-current="page"{% endif %}>Find a doctor</a></li>
+            {% elif logged_in_user.role == 'DOCTOR' %}
+            <li><a href="{% url 'doctors:dashboard' %}" {% if current == 'doctors:dashboard' or current == 'doctors:confirm-appointment' %}class="active" aria-current="page"{% endif %}>Appointment requests</a></li>
+            <li><a href="{% url 'doctors:schedule' %}" {% if current == 'doctors:schedule' %}class="active" aria-current="page"{% endif %}>My schedule</a></li>
+            {% elif logged_in_user.role == 'DRIVER' %}
+            <li><a href="{% url 'drivers:dashboard' %}" {% if current == 'drivers:dashboard' %}class="active" aria-current="page"{% endif %}>Dashboard</a></li>
+            <li><a href="{% url 'ambulances:mine' %}" {% if current|slice:":11" == 'ambulances:' %}class="active" aria-current="page"{% endif %}>My ambulance</a></li>
+            {% elif logged_in_user.role == 'STAFF' %}
+            <li><a href="{% url 'staffs:dashboard' %}" {% if current == 'staffs:dashboard' %}class="active" aria-current="page"{% endif %}>Dashboard</a></li>
+            <li><a href="{% url 'staffs:call-list' %}" {% if current == 'staffs:call-list' or current == 'staffs:call-create' or current == 'staffs:call-detail' %}class="active" aria-current="page"{% endif %}>Emergency calls</a></li>
+            <li><a href="{% url 'ambulances:list' %}" {% if current|slice:":11" == 'ambulances:' %}class="active" aria-current="page"{% endif %}>Ambulances</a></li>
+            <li><a href="{% url 'staffs:vacations' %}" {% if current == 'staffs:vacations' %}class="active" aria-current="page"{% endif %}>My vacations</a></li>
+            {% if is_staff_manager %}
+            <li class="menu-gap"><a href="{% url 'staffs:member-list' %}" {% if current == 'staffs:member-list' or current == 'staffs:member-detail' or current == 'staffs:register' %}class="active" aria-current="page"{% endif %}>Manage staff</a></li>
+            <li><a href="{% url 'staffs:vacation-requests' %}" {% if current == 'staffs:vacation-requests' %}class="active" aria-current="page"{% endif %}>Vacation requests</a></li>
             {% endif %}
-            </div>
-        </nav>
-    </header>
-
-    <hr>
-    <main>
-        {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-            <li class="message {{ message.tags }}">{{ message }}</li>
-            {% endfor %}
+            {% endif %}
+            <li class="menu-gap"><a href="{% url 'core:settings' %}" {% if current == 'core:settings' %}class="active" aria-current="page"{% endif %}>Settings</a></li>
         </ul>
+
+        <div class="account">
+            <img src="{% static 'images/horse-profile-pic.jpg' %}" alt="">
+            <div class="account-text">
+                <a class="user-name" href="{% url 'core:settings' %}">{{ logged_in_user.username }}</a>
+                <span>{{ logged_in_user.get_role_display }}</span>
+            </div>
+            <a class="logout" href="{% url 'core:logout' %}">Log out</a>
+        </div>
+    </aside>
+    {% endwith %}
+    {% endif %}
+
+    <div class="content">
+        {% if logged_in_user %}
+        <div class="topbar">
+            <button type="button" class="nav-toggle" id="nav-toggle" aria-controls="sidebar" aria-expanded="false" aria-label="Open menu">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14"/></svg>
+            </button>
+            <a href="{% url 'core:home' %}" class="brand">HN-UHAMS</a>
+        </div>
+        {% else %}
+        <header class="public-bar">
+            <a href="{% url 'core:home' %}" class="brand">HN-UHAMS</a>
+            <nav aria-label="Account">
+                <a href="{% url 'core:login' %}">Log in</a>
+                <a href="{% url 'core:register' %}">Create account</a>
+            </nav>
+        </header>
         {% endif %}
-        {% block content %}
-        content here, replace it with page's content
-        {% endblock %}
-    </main>
+
+        <main id="main">
+            {% if messages %}
+            <ul class="messages" role="status">
+                {% for message in messages %}
+                <li class="message {{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
 
     <script src="{% static 'js/main.js' %}"></script>
 </body>

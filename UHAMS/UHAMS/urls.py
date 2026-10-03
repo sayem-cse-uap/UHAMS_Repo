@@ -1,29 +1,30 @@
 """
-URL configuration for UHAMS project.
+URL configuration for UHAMS.
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.1/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+Layout (every app is namespaced; reverse with e.g. 'patients:dashboard'):
+
+    /                          core        home, login, logout, register, settings
+    /admin/                    Django admin
+    /staff/...                 staffs      dashboard, register, members, vacations, calls
+    /patients/...              patients    register, dashboard, doctors/<id>/book
+    /doctors/...               doctors     register, dashboard, schedule, appointments/<id>/confirm
+    /drivers/...               drivers     register, dashboard
+    /ambulances/...            ambulances  list, new, mine, <pk>, <pk>/edit|delete|status
+
+Old URLs are kept alive through UHAMS.legacy_urls (301 redirects).
 """
 from django.contrib import admin
 from django.urls import path, include
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # Built-in auth URLs (login, logout, password reset)
-    # path('accounts/', include('django.contrib.auth.urls')),
     path('', include('core.urls')),
-    path('staffs/', include('staffs.urls')),
+    path('staff/', include('staffs.urls')),
     path('patients/', include('patients.urls')),
     path('doctors/', include('doctors.urls')),
     path('drivers/', include('drivers.urls')),
     path('ambulances/', include('ambulances.urls')),
+
+    # Redirects from the previous URL scheme
+    path('', include('UHAMS.legacy_urls')),
 ]

@@ -4,11 +4,11 @@
 
 {% block content %}
     <h1>{{ target.user.get_full_name|default:target.user.username }}</h1>
-    <p><a href="{% url 'manage-staff' %}">&larr; All staff</a></p>
+    <p><a href="{% url 'staffs:member-list' %}">&larr; All staff</a></p>
 
     <section class="settings-section">
         <h2>Summary</h2>
-        <table class="data-table">
+        <div class="table-wrap"><table class="data-table">
             <tr><th>Username</th><td>{{ target.user.username }}</td></tr>
             <tr><th>Email</th><td>{{ target.user.email|default:"-" }}</td></tr>
             <tr><th>Phone</th><td>{{ target.user.phone|default:"-" }}</td></tr>
@@ -20,7 +20,7 @@
             <tr><th>Available</th><td>{{ target.availability_status|yesno:"Yes,No" }}</td></tr>
             <tr><th>On approved leave today</th><td>{{ target.is_on_leave|yesno:"Yes,No" }}</td></tr>
             <tr><th>Current assignment</th><td>{{ target.current_assignment|default:"None" }}</td></tr>
-        </table>
+        </table></div>
     </section>
 
     {% if not can_manage %}
@@ -80,7 +80,7 @@
     <section class="settings-section">
         <h2>Patients</h2>
         {% if assigned_patients %}
-        <table class="data-table">
+        <div class="table-wrap"><table class="data-table">
             <thead><tr><th>Patient</th><th>Blood group</th><th></th></tr></thead>
             <tbody>
             {% for p in assigned_patients %}
@@ -98,7 +98,7 @@
                 </tr>
             {% endfor %}
             </tbody>
-        </table>
+        </table></div>
         {% else %}
         <p>No patients assigned.</p>
         {% endif %}
@@ -117,7 +117,7 @@
     <section class="settings-section">
         <h2>Assignment history</h2>
         {% if assignment_history %}
-        <table class="data-table">
+        <div class="table-wrap"><table class="data-table">
             <thead><tr><th>Assignment</th><th>From</th><th>Until</th><th>By</th></tr></thead>
             <tbody>
             {% for a in assignment_history %}
@@ -129,22 +129,22 @@
                 </tr>
             {% endfor %}
             </tbody>
-        </table>
+        </table></div>
         {% else %}<p>No assignments yet.</p>{% endif %}
     </section>
 
     <section class="settings-section">
         <h2>Vacations</h2>
         {% if vacations %}
-        <table class="data-table">
+        <div class="table-wrap"><table class="data-table">
             <thead><tr><th>From</th><th>To</th><th>Reason</th><th>Status</th></tr></thead>
             <tbody>
             {% for v in vacations %}
                 <tr><td>{{ v.start_date }}</td><td>{{ v.end_date }}</td><td>{{ v.reason|default:"-" }}</td><td>{{ v.get_status_display }}</td></tr>
             {% endfor %}
             </tbody>
-        </table>
+        </table></div>
         {% else %}<p>No vacation requests.</p>{% endif %}
-        <p><a href="{% url 'manage-vacations' %}">Review all vacation requests</a></p>
+        <p><a href="{% url 'staffs:vacation-requests' %}">Review all vacation requests</a></p>
     </section>
 {% endblock %}

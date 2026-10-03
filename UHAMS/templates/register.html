@@ -1,16 +1,21 @@
 {% extends 'base.html' %}
 
-{% block title %} Login Page {% endblock %}
+{% block title %}Create an account - HN-UHAMS{% endblock %}
+{% block body_class %}auth{% endblock %}
 
 {% block content %}
-    <h1>register Page</h1>
-    {% if is_staff_manager %}
-    <p>Need to create a staff account? <a href="{% url 'register_staff' %}">Register staff here</a></p>
-    {% else %}
-    <p>Staff accounts are created by a manager. Please ask one to register you.</p>
+    <h1>Create an account</h1>
+    <p>Choose the kind of account you need.</p>
+    <ul class="choice-list">
+        <li><a href="{% url 'patients:register' %}">Patient<span>Book appointments and follow your visits.</span></a></li>
+        <li><a href="{% url 'doctors:register' %}">Doctor<span>Manage your schedule and confirm requests.</span></a></li>
+        <li><a href="{% url 'drivers:register' %}">Ambulance driver<span>See your ambulance and emergency dispatches.</span></a></li>
+        {% if is_staff_manager %}
+        <li><a href="{% url 'staffs:register' %}">Staff member<span>Add a new member to the hospital staff.</span></a></li>
+        {% endif %}
+    </ul>
+    {% if not is_staff_manager %}
+    <p class="form-note">Staff accounts are created by a manager. Ask one to register you.</p>
     {% endif %}
-    <p>Need create an patient account? <a href="{% url 'register_patient' %}">Sign up here</a></p>
-    <p>Need create an doctor account? <a href="{% url 'register_doctor' %}">Sign up here</a></p>
-    <p>Need create an driver account? <a href="{% url 'register_driver' %}">Sign up here</a></p>
-
+    <p class="form-note">Already registered? <a href="{% url 'core:login' %}">Log in</a></p>
 {% endblock %}

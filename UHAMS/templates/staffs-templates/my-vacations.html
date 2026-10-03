@@ -5,7 +5,7 @@
 {% block content %}
     <h1>My Vacations</h1>
     {% if on_leave %}<p><span class="badge confirmed">You are on approved leave today</span></p>{% endif %}
-    <p><a href="{% url 'staff-dashboard' %}">&larr; Dashboard</a></p>
+    <p><a href="{% url 'staffs:dashboard' %}">&larr; Dashboard</a></p>
 
     <section class="settings-section">
         <h2>Request time off</h2>
@@ -19,7 +19,7 @@
 
     <h2>My requests</h2>
     {% if vacations %}
-    <table class="data-table">
+    <div class="table-wrap"><table class="data-table">
         <thead><tr><th>From</th><th>To</th><th>Reason</th><th>Status</th><th>Reviewed by</th><th></th></tr></thead>
         <tbody>
         {% for v in vacations %}
@@ -46,7 +46,7 @@
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
     {% else %}
     <p>You have not requested any time off yet.</p>
     {% endif %}

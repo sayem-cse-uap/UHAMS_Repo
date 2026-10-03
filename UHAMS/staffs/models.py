@@ -102,9 +102,6 @@ class StaffProfile(models.Model):
     # ------------------------------------------------------------------
     # Role, salary, details
     # ------------------------------------------------------------------
-    def checkRoleOfStaff(self):
-        return self.get_role_display()
-
     def changeRoleOfStaff(self, new_role, changed_by):
         self._require_manager(changed_by)
         if new_role not in dict(self.ROLE_CHOICES):
@@ -166,10 +163,6 @@ class StaffProfile(models.Model):
     def listAllStaff(cls):
         return cls.objects.select_related("user")
 
-    @classmethod
-    def listAllAvailableStaff(cls):
-        return cls.listAllStaff().filter(availability_status=True)
-
     # ------------------------------------------------------------------
     # Ambulances (uses the ambulances / drivers apps)
     # ------------------------------------------------------------------
@@ -179,22 +172,6 @@ class StaffProfile(models.Model):
         from ambulances.models import Ambulance
 
         return Ambulance.objects.filter(status=Ambulance.Status.AVAILABLE, driver__isnull=False)
-
-    @staticmethod
-    def listAllAvailableDrivers():
-        """Drivers who are not yet attached to an ambulance."""
-        from drivers.models import DriverProfile
-
-        return DriverProfile.objects.filter(ambulance__isnull=True).select_related("user")
-
-    @transaction.atomic
-    def assignDriverToAmbulance(self, driver, ambulance):
-        """Attach a DriverProfile to an ambulance (one driver per ambulance)."""
-        if hasattr(driver, "ambulance") and driver.ambulance.pk != ambulance.pk:
-            raise ValidationError("This driver is already assigned to another ambulance.")
-        ambulance.driver = driver
-        ambulance.save()
-        return ambulance
 
     @transaction.atomic
     def dispatchAmbulance(self, ambulance, call):

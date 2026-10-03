@@ -31,10 +31,10 @@ def role_required(*roles):
         def wrapper(request, *args, **kwargs):
             user = _get_logged_in_user(request)
             if user is None:
-                return redirect('login')
+                return redirect('core:login')
             if user.role not in roles:
                 messages.error(request, "You do not have permission to access that page.")
-                return redirect('home')
+                return redirect('core:home')
             request.uhams_user = user
             return view_func(request, *args, **kwargs)
         return wrapper
@@ -81,13 +81,13 @@ def ambulance_list(request):
 
 
 @role_required(User.Role.STAFF, User.Role.DRIVER)
-def ambulance_detail(request, ambulance_pk):
-    ambulance = get_object_or_404(Ambulance.objects.select_related('driver__user'), pk=ambulance_pk)
+def ambulance_detail(request, pk):
+    ambulance = get_object_or_404(Ambulance.objects.select_related('driver__user'), pk=pk)
     user = request.uhams_user
 
     if not _can_view(user, ambulance):
         messages.error(request, "You can only view the ambulance assigned to you.")
-        return redirect('home')
+        return redirect('core:home')
 
     is_staff = user.role == User.Role.STAFF
     allowed = None if is_staff else DRIVER_ALLOWED_STATUSES
@@ -107,7 +107,7 @@ def create_ambulance(request):
         if form.is_valid():
             ambulance = form.save()
             messages.success(request, f"Ambulance {ambulance.ambulance_id} created successfully!")
-            return redirect('ambulance-detail', ambulance_pk=ambulance.pk)
+            return redirect('ambulances:detail', pk=ambulance.pk)
     else:
         form = AmbulanceForm()
 
@@ -119,15 +119,15 @@ def create_ambulance(request):
 
 
 @role_required(User.Role.STAFF)
-def edit_ambulance(request, ambulance_pk):
-    ambulance = get_object_or_404(Ambulance, pk=ambulance_pk)
+def edit_ambulance(request, pk):
+    ambulance = get_object_or_404(Ambulance, pk=pk)
 
     if request.method == 'POST':
         form = AmbulanceForm(request.POST, instance=ambulance)
         if form.is_valid():
             form.save()
             messages.success(request, f"Ambulance {ambulance.ambulance_id} updated successfully!")
-            return redirect('ambulance-detail', ambulance_pk=ambulance.pk)
+            return redirect('ambulances:detail', pk=ambulance.pk)
     else:
         form = AmbulanceForm(instance=ambulance)
 
@@ -140,29 +140,29 @@ def edit_ambulance(request, ambulance_pk):
 
 
 @role_required(User.Role.STAFF)
-def delete_ambulance(request, ambulance_pk):
-    ambulance = get_object_or_404(Ambulance, pk=ambulance_pk)
+def delete_ambulance(request, pk):
+    ambulance = get_object_or_404(Ambulance, pk=pk)
 
     if request.method == 'POST':
         label = ambulance.ambulance_id
         ambulance.delete()
         messages.success(request, f"Ambulance {label} deleted.")
-        return redirect('ambulance-list')
+        return redirect('ambulances:list')
 
     return render(request, 'ambulances-templates/ambulance-confirm-delete.html', {'ambulance': ambulance})
 
 
 @role_required(User.Role.STAFF, User.Role.DRIVER)
-def update_ambulance_status(request, ambulance_pk):
-    ambulance = get_object_or_404(Ambulance, pk=ambulance_pk)
+def update_ambulance_status(request, pk):
+    ambulance = get_object_or_404(Ambulance, pk=pk)
     user = request.uhams_user
 
     if request.method != 'POST':
-        return redirect('ambulance-detail', ambulance_pk=ambulance.pk)
+        return redirect('ambulances:detail', pk=ambulance.pk)
 
     if not _can_view(user, ambulance):
         messages.error(request, "You can only update the ambulance assigned to you.")
-        return redirect('home')
+        return redirect('core:home')
 
     allowed = None if user.role == User.Role.STAFF else DRIVER_ALLOWED_STATUSES
     form = AmbulanceStatusForm(request.POST, instance=ambulance, allowed_statuses=allowed)
@@ -180,7 +180,7 @@ def update_ambulance_status(request, ambulance_pk):
         for error in form.errors.get('status', []):
             messages.error(request, error)
 
-    return redirect('ambulance-detail', ambulance_pk=ambulance.pk)
+    return redirect('ambulances:detail', pk=ambulance.pk)
 
 
 @role_required(User.Role.DRIVER)
@@ -191,6 +191,6 @@ def my_ambulance(request):
 
     if ambulance is None:
         messages.info(request, "No ambulance has been assigned to you yet.")
-        return redirect('driver-dashboard')
+        return redirect('drivers:dashboard')
 
-    return redirect('ambulance-detail', ambulance_pk=ambulance.pk)
+    return redirect('ambulances:detail', pk=ambulance.pk)

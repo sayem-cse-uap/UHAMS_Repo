@@ -7,7 +7,9 @@
     <form method="POST">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">{{ submit_label }}</button>
-        <a href="{% url 'ambulance-list' %}">Cancel</a>
+        <div class="form-actions">
+            <button type="submit">{{ submit_label }}</button>
+            <a href="{% url 'ambulances:list' %}">Cancel</a>
+        </div>
     </form>
 {% endblock %}

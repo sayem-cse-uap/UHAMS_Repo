@@ -1,9 +1,5 @@
-from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect
 
-from .context_processors import custom_login_required
 from .models import User
 
 from core.forms import AccountForm, ChangePasswordForm, LoginForm
@@ -16,27 +12,19 @@ from drivers.forms import DriverSettingsForm
 from drivers.models import DriverProfile
 from patients.forms import PatientSettingsForm
 from patients.models import PatientProfile
-from staffs.forms import StaffRegistrationForm, StaffSettingsForm
+from staffs.forms import StaffSettingsForm
 from staffs.models import StaffProfile
 from django.contrib import messages
 
-from functools import wraps
 
-
-# Usage in views.py:
-# @custom_login_required
-
-
-# Create your views here.
-# @login_required
 def home(request):
     return render(request, 'home.html')
 
 DASHBOARD_BY_ROLE = {
-    User.Role.STAFF: 'staff-dashboard',
-    User.Role.DOCTOR: 'doctor-dashboard',
-    User.Role.DRIVER: 'driver-dashboard',
-    User.Role.PATIENT: 'patient-dashboard',
+    User.Role.STAFF: 'staffs:dashboard',
+    User.Role.DOCTOR: 'doctors:dashboard',
+    User.Role.DRIVER: 'drivers:dashboard',
+    User.Role.PATIENT: 'patients:dashboard',
 }
 
 
@@ -54,7 +42,7 @@ def loginView(request):
             else:
                 request.session.cycle_key()  # new session id on login
                 request.session['user_id'] = user.id
-                return redirect(DASHBOARD_BY_ROLE.get(user.role, 'home'))
+                return redirect(DASHBOARD_BY_ROLE.get(user.role, 'core:home'))
     else:
         form = LoginForm()
 
@@ -64,7 +52,7 @@ def logoutView(request):
     # Completely destroy session data and cookies
     request.session.flush()
     messages.info(request, "You have been logged out.")
-    return redirect('login')
+    return redirect('core:login')
 
 def _role_profile(user):
     """Return (profile, settings_form_class, read_only_rows) for the user's role."""
@@ -128,21 +116,20 @@ def account_settings(request):
         if section == 'account' and account_form.is_valid():
             account_form.save()
             messages.success(request, "Your account details were updated.")
-            return redirect('settings')
+            return redirect('core:settings')
         if section == 'profile' and profile_form is not None and profile_form.is_valid():
             profile_form.save()
             messages.success(request, "Your profile was updated.")
-            return redirect('settings')
+            return redirect('core:settings')
         if section == 'password' and password_form.is_valid():
             password_form.save()
             messages.success(request, "Your password was changed.")
-            return redirect('settings')
+            return redirect('core:settings')
 
     # Fresh copy for display: a failed ModelForm validation may have modified `user` in memory.
     return render(request, 'settings.html', {
         'account_user': User.objects.get(pk=user.pk),
         'account_form': account_form,
-        'profile': profile,
         'profile_form': profile_form,
         'profile_rows': profile_rows,
         'password_form': password_form,
@@ -151,28 +138,3 @@ def account_settings(request):
 
 def register_new_user(request):
     return render(request, 'register.html')
-
-# def loginView(request):
-#     if request.method == 'POST':
-#         # 1. Bind POST data to Django's built-in AuthenticationForm
-#         form = AuthenticationForm(request, data=request.POST)
-#         if form.is_valid():
-#             # 2. Get the authenticated user object and start the session
-#             user = form.get_user()
-#             login(request, user)
-#
-#             # 3. Redirect to destination (or fallback page)
-#             next_url = request.GET.get('next', 'dashboard')
-#             return redirect(next_url)
-#     else:
-#         # 4. Instantiate an empty form for GET requests
-#         form = AuthenticationForm()
-#
-#     # 5. Pass the form to your template via context
-#     return render(request, 'login.html', {'form': form})
-
-
-
-
-# def logoutView(request):
-#     return render(request,'logout.html')

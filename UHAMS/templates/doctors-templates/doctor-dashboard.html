@@ -3,14 +3,12 @@
 {% block title %} UHAMS - Doctor Dashboard {% endblock %}
 
 {% block content %}
-    <h1>Doctor Dashboard Page, {{ logged_in_user.username }}</h1>
-    <p> Welecome to UHAMS, we are still in development though.. but welcome anyways.</p>
-<!--    <a href="{% url 'register_staff' %}">Register Staff</a>-->
-    <a href="{% url 'logout' %}">Logout</a>
+    <h1>Hello, {{ logged_in_user.username }}</h1>
+    <p class="lede">Review new appointment requests and see your confirmed visits.</p>
 
-    <h2>Pending Appointment Requests</h2>
+    <h2>Pending appointment requests</h2>
     {% if pending_appointments %}
-    <table class="data-table">
+    <div class="table-wrap"><table class="data-table">
         <thead><tr><th>Patient</th><th>Requested date</th><th>Reason</th><th></th></tr></thead>
         <tbody>
         {% for appt in pending_appointments %}
@@ -18,18 +16,18 @@
                 <td>{{ appt.patient.user.get_full_name|default:appt.patient.user.username }}</td>
                 <td>{{ appt.date|date:"D, d M Y" }}</td>
                 <td>{{ appt.reason|default:"-" }}</td>
-                <td><a class="btn-link" href="{% url 'confirm-appointment' appt.id %}">Confirm &amp; Assign Time</a></td>
+                <td><a class="btn-link" href="{% url 'doctors:confirm-appointment' appt.id %}">Confirm and assign time</a></td>
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
     {% else %}
     <p>No pending requests.</p>
     {% endif %}
 
-    <h2>Confirmed Appointments</h2>
+    <h2>Confirmed appointments</h2>
     {% if confirmed_appointments %}
-    <table class="data-table">
+    <div class="table-wrap"><table class="data-table">
         <thead><tr><th>Patient</th><th>Date</th><th>Time</th><th>Room</th><th>Status</th></tr></thead>
         <tbody>
         {% for appt in confirmed_appointments %}
@@ -42,10 +40,10 @@
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
     {% else %}
     <p>No confirmed appointments yet.</p>
     {% endif %}
 
-    <p><a href="{% url 'doctor-schedule' %}">Manage my schedule</a></p>
+    <p><a class="btn-link secondary" href="{% url 'doctors:schedule' %}">Manage my schedule</a></p>
 {% endblock %}

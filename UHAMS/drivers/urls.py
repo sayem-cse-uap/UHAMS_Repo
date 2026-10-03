@@ -1,7 +1,9 @@
 from django.urls import path
 from . import views
 
+app_name = 'drivers'
+
 urlpatterns = [
-    path('register-driver/', views.register_driver, name='register_driver'),
-    path('driver-dashboard/', views.driver_dashboard, name='driver-dashboard'),
+    path('register/', views.register_driver, name='register'),
+    path('dashboard/', views.driver_dashboard, name='dashboard'),
 ]

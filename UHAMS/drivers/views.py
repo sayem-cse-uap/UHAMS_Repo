@@ -10,11 +10,9 @@ def register_driver(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Driver registered successfully!")
-            return redirect('login')  # Redirect to your desired URL
-        # test_text = "huh? this is not inside else block"
+            return redirect('core:login')
     else:
         form = DriverRegistrationForm()
-        # test_text = "can you see this? views.py inside staffs-templates app"
 
     return render(request, 'drivers-templates/register-driver.html', {'form': form})
 

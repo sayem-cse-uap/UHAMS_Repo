@@ -4,48 +4,51 @@
 
 {% block content %}
     <h1>Ambulance {{ ambulance.ambulance_id }}</h1>
+    <p class="lede"><span class="badge {% if ambulance.status == 'AVAILABLE' %}confirmed{% elif ambulance.status != 'ON_TRIP' %}done{% endif %}">{{ ambulance.get_status_display }}</span></p>
 
-    <ul>
-        <li>Registration: {{ ambulance.registration_number }}</li>
-        <li>Model: {{ ambulance.model_name|default:"-" }}</li>
-        <li>Type: {{ ambulance.get_vehicle_type_display }}</li>
-        <li>Capacity: {{ ambulance.capacity }}</li>
-        <li>Status: {{ ambulance.get_status_display }}</li>
-        <li>Last service: {{ ambulance.last_service_date|default:"-" }}</li>
-        <li>
-            Driver:
+    <ul class="detail-list">
+        <li><span class="k">Registration</span><span>{{ ambulance.registration_number }}</span></li>
+        <li><span class="k">Model</span><span>{{ ambulance.model_name|default:"-" }}</span></li>
+        <li><span class="k">Type</span><span>{{ ambulance.get_vehicle_type_display }}</span></li>
+        <li><span class="k">Capacity</span><span>{{ ambulance.capacity }}</span></li>
+        <li><span class="k">Last service</span><span>{{ ambulance.last_service_date|default:"-" }}</span></li>
+        <li><span class="k">Driver</span><span>
             {% if ambulance.driver %}
                 {{ ambulance.driver.user.get_full_name|default:ambulance.driver.user.username }}
-                (License: {{ ambulance.driver.driver_license_number }})
+                (license {{ ambulance.driver.driver_license_number }})
             {% else %}
                 Unassigned
             {% endif %}
-        </li>
-        <li>Equipment notes: {{ ambulance.equipment_notes|default:"-" }}</li>
+        </span></li>
+        <li><span class="k">Equipment notes</span><span>{{ ambulance.equipment_notes|default:"-" }}</span></li>
     </ul>
 
     {% with call=ambulance.active_call %}
     {% if call %}
-    <h3>Current emergency call</h3>
-    <p><strong>{{ call.location }}</strong>{% if call.description %} &mdash; {{ call.description }}{% endif %}
-       (logged {{ call.created_at|date:"d M Y H:i" }})</p>
+    <div class="panel" style="border-left:4px solid var(--alert)">
+        <h2>Current emergency call</h2>
+        <p><strong>{{ call.location }}</strong>{% if call.description %} &mdash; {{ call.description }}{% endif %}<br>
+           <span class="form-note">Logged {{ call.created_at|date:"d M Y H:i" }}</span></p>
+    </div>
     {% endif %}
     {% endwith %}
 
-    <h3>Update Status</h3>
-    <form method="POST" action="{% url 'update-ambulance-status' ambulance.pk %}">
-        {% csrf_token %}
-        {{ status_form.as_p }}
-        <button type="submit">Update Status</button>
-    </form>
+    <div class="panel">
+        <h2>Update status</h2>
+        <form method="POST" action="{% url 'ambulances:update-status' ambulance.pk %}">
+            {% csrf_token %}
+            {{ status_form.as_p }}
+            <button type="submit">Update status</button>
+        </form>
+    </div>
 
-    {% if can_manage %}
-    <p>
-        <a href="{% url 'edit-ambulance' ambulance.pk %}">Edit</a> |
-        <a href="{% url 'delete-ambulance' ambulance.pk %}">Delete</a> |
-        <a href="{% url 'ambulance-list' %}">Back to list</a>
-    </p>
-    {% else %}
-    <p><a href="{% url 'driver-dashboard' %}">Back to dashboard</a></p>
-    {% endif %}
+    <div class="actions">
+        {% if can_manage %}
+        <a class="btn-link secondary" href="{% url 'ambulances:edit' ambulance.pk %}">Edit</a>
+        <a class="btn-link secondary" href="{% url 'ambulances:delete' ambulance.pk %}">Delete</a>
+        <a href="{% url 'ambulances:list' %}">Back to list</a>
+        {% else %}
+        <a href="{% url 'drivers:dashboard' %}">Back to dashboard</a>
+        {% endif %}
+    </div>
 {% endblock %}

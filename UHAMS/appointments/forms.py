@@ -1,7 +1,6 @@
 from django import forms
 from django.utils import timezone
 
-from doctors.models import DoctorProfile
 from .models import Appointment
 
 

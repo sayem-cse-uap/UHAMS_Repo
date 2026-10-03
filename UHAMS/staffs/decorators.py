@@ -16,7 +16,7 @@ def staff_profile_required(view_func):
         profile = StaffProfile.objects.select_related("user").filter(user=request.uhams_user).first()
         if profile is None:
             messages.error(request, "Your account has no staff profile yet. Ask a manager to set one up.")
-            return redirect("staff-dashboard")
+            return redirect("staffs:dashboard")
         request.staff_profile = profile
         return view_func(request, *args, **kwargs)
 
@@ -31,7 +31,7 @@ def manager_required(view_func):
         profile = StaffProfile.objects.select_related("user").filter(user=request.uhams_user).first()
         if profile is None or not profile.is_manager:
             messages.error(request, "Only managers can open that page.")
-            return redirect("staff-dashboard")
+            return redirect("staffs:dashboard")
         request.staff_profile = profile
         return view_func(request, *args, **kwargs)
 

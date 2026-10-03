@@ -3,26 +3,35 @@
 {% block title %} UHAMS - Staff Dashboard {% endblock %}
 
 {% block content %}
-    <h1>Staff Dashboard, {{ logged_in_user.get_full_name|default:logged_in_user.username }}</h1>
+    <h1>Hello, {{ logged_in_user.get_full_name|default:logged_in_user.username }}</h1>
     {% if my_profile %}
-    <p>{{ my_profile.title }} &middot; {{ my_profile.department }} &middot; {{ my_profile.get_role_display }}
-        &middot; {% if my_profile.availability_status %}<span class="badge confirmed">Available</span>{% else %}<span class="badge">Unavailable</span>{% endif %}
-        &middot; <a href="{% url 'settings' %}">Settings</a></p>
+    <p class="lede">{{ my_profile.title }}, {{ my_profile.department }} department, {{ my_profile.get_role_display }}.
+        {% if my_profile.availability_status %}<span class="badge confirmed">Available</span>{% else %}<span class="badge">Unavailable</span>{% endif %}</p>
     {% else %}
-    <p>No staff profile is attached to this account yet. Ask an administrator to create one.</p>
+    <p class="lede">No staff profile is attached to this account yet. Ask an administrator to create one.</p>
     {% endif %}
-    <p><a class="btn-link" href="{% url 'call-list' %}">Emergency calls</a>
-       <a class="btn-link" href="{% url 'my-vacations' %}">My vacations</a>
-       {% if is_staff_manager %}
-       <a class="btn-link" href="{% url 'manage-staff' %}">Manage staff</a>
-       <a class="btn-link" href="{% url 'manage-vacations' %}">Vacation requests</a>
-       <a class="btn-link" href="{% url 'register_staff' %}">Register staff</a>
-       {% endif %}</p>
-    <a href="{% url 'logout' %}">Logout</a>
 
-    <h2>All Appointments</h2>
+    <div class="actions">
+        <a class="btn-link" href="{% url 'staffs:call-create' %}">Log emergency call</a>
+        <a class="btn-link secondary" href="{% url 'staffs:call-list' %}">Emergency calls</a>
+        <a class="btn-link secondary" href="{% url 'staffs:vacations' %}">My vacations</a>
+        {% if is_staff_manager %}
+        <a class="btn-link secondary" href="{% url 'staffs:member-list' %}">Manage staff</a>
+        <a class="btn-link secondary" href="{% url 'staffs:vacation-requests' %}">Vacation requests</a>
+        <a class="btn-link secondary" href="{% url 'staffs:register' %}">Register staff</a>
+        {% endif %}
+    </div>
+
+    <div class="stats">
+        <div class="stat"><strong>{{ appointments|length }}</strong><span>Appointments</span></div>
+        <div class="stat"><strong>{{ doctors|length }}</strong><span>Doctors</span></div>
+        <div class="stat"><strong>{{ patients|length }}</strong><span>Patients</span></div>
+        <div class="stat"><strong>{{ staffs|length }}</strong><span>Staff</span></div>
+    </div>
+
+    <h2>All appointments</h2>
     {% if appointments %}
-    <table class="data-table">
+    <div class="table-wrap"><table class="data-table">
         <thead><tr><th>Doctor</th><th>Patient</th><th>Date</th><th>Status</th><th>Room</th></tr></thead>
         <tbody>
         {% for item in appointments %}
@@ -30,63 +39,63 @@
                 <td>{{ item.doctor.user.username }}</td>
                 <td>{{ item.patient.user.username }}</td>
                 <td>{{ item.date|date:"D, d M Y" }}</td>
-                <td>{{ item.get_status_display }}</td>
+                <td><span class="badge {% if item.status == 'DONE' %}done{% elif item.status != 'PENDING_CONFIRMATION' %}confirmed{% endif %}">{{ item.get_status_display }}</span></td>
                 <td>{{ item.room_number }}</td>
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
     {% else %}<p>No appointments yet.</p>{% endif %}
 
     <h2>Doctors</h2>
     {% if doctors %}
-    <table class="data-table">
+    <div class="table-wrap"><table class="data-table">
         <thead><tr><th>Username</th><th>Specialization</th></tr></thead>
         <tbody>{% for item in doctors %}<tr><td>{{ item.user.username }}</td><td>{{ item.specialization }}</td></tr>{% endfor %}</tbody>
-    </table>
+    </table></div>
     {% else %}<p>No doctors yet.</p>{% endif %}
 
     <h2>Patients</h2>
     {% if patients %}
-    <table class="data-table">
+    <div class="table-wrap"><table class="data-table">
         <thead><tr><th>Username</th><th>Blood group</th><th>Assigned staff</th></tr></thead>
         <tbody>
         {% for item in patients %}
             <tr><td>{{ item.user.username }}</td><td>{{ item.bloodGroup }}</td><td>{{ item.assigned_staff.user.username|default:"-" }}</td></tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
     {% else %}<p>No patients yet.</p>{% endif %}
 
     <h2>Staff</h2>
     {% if staffs %}
-    <table class="data-table">
+    <div class="table-wrap"><table class="data-table">
         <thead><tr><th>Username</th><th>Title</th><th>Role</th><th>Department</th><th>Available</th></tr></thead>
         <tbody>
         {% for item in staffs %}
             <tr>
                 <td>{{ item.user.username }}</td><td>{{ item.title }}</td><td>{{ item.get_role_display }}</td>
-                <td>{{ item.department }}</td><td>{{ item.availability_status|yesno:"Yes,No" }}</td>
+                <td>{{ item.department }}</td><td>{% if item.availability_status %}<span class="badge confirmed">Yes</span>{% else %}<span class="badge done">No</span>{% endif %}</td>
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
     {% else %}<p>No staff profiles yet.</p>{% endif %}
 
-    <h2>Recent Ambulance Calls</h2>
+    <h2>Recent ambulance calls</h2>
     {% if ambulance_calls %}
-    <table class="data-table">
+    <div class="table-wrap"><table class="data-table">
         <thead><tr><th>Location</th><th>Status</th><th>Ambulance</th><th>Handled by</th><th>Logged</th></tr></thead>
         <tbody>
         {% for call in ambulance_calls %}
             <tr>
-                <td><a href="{% url 'call-detail' call.pk %}">{{ call.location }}</a></td><td>{{ call.get_status_display }}</td>
+                <td><a href="{% url 'staffs:call-detail' call.pk %}">{{ call.location }}</a></td><td>{% if call.status == 'pending' %}<span class="badge alert">Pending</span>{% elif call.status == 'dispatched' %}<span class="badge confirmed">Dispatched</span>{% else %}<span class="badge done">{{ call.get_status_display }}</span>{% endif %}</td>
                 <td>{{ call.ambulance.ambulance_id|default:"-" }}</td>
                 <td>{{ call.handled_by.user.username|default:"-" }}</td>
                 <td>{{ call.created_at|date:"d M Y H:i" }}</td>
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
     {% else %}<p>No ambulance calls logged.</p>{% endif %}
 {% endblock %}

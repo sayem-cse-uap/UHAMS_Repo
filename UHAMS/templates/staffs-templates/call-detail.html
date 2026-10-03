@@ -3,25 +3,25 @@
 {% block title %} UHAMS - Emergency Call {% endblock %}
 
 {% block content %}
+    <p><a href="{% url 'staffs:call-list' %}">&larr; All calls</a></p>
     <h1>Emergency call: {{ call.location }}</h1>
-    <p><a href="{% url 'call-list' %}">&larr; All calls</a></p>
 
     <section class="settings-section">
-        <table class="data-table">
-            <tr><th>Status</th><td>{{ call.get_status_display }}</td></tr>
+        <div class="table-wrap"><table class="data-table">
+            <tr><th>Status</th><td>{% if call.status == 'pending' %}<span class="badge alert">Pending</span>{% elif call.status == 'dispatched' %}<span class="badge confirmed">Dispatched</span>{% else %}<span class="badge done">{{ call.get_status_display }}</span>{% endif %}</td></tr>
             <tr><th>Logged</th><td>{{ call.created_at|date:"d M Y H:i" }}</td></tr>
             <tr><th>Details</th><td>{{ call.description|default:"-" }}</td></tr>
             <tr><th>Handled by</th><td>{{ call.handled_by.user.username|default:"-" }}</td></tr>
             <tr><th>Ambulance</th>
                 <td>
                     {% if call.ambulance %}
-                    <a href="{% url 'ambulance-detail' call.ambulance.pk %}">{{ call.ambulance.ambulance_id }}</a>
+                    <a href="{% url 'ambulances:detail' call.ambulance.pk %}">{{ call.ambulance.ambulance_id }}</a>
                     {% if call.ambulance.driver %}
                     &mdash; driver {{ call.ambulance.driver.user.get_full_name|default:call.ambulance.driver.user.username }}
                     {% endif %}
                     {% else %}-{% endif %}
                 </td></tr>
-        </table>
+        </table></div>
     </section>
 
     {% if call.status == 'pending' %}
@@ -43,18 +43,21 @@
     {% if call.status == 'dispatched' or call.status == 'pending' %}
     <section class="settings-section">
         <h2>Close this call</h2>
+        <div class="form-actions" style="align-items:flex-start">
         {% if call.status == 'dispatched' %}
         <form method="post">
             {% csrf_token %}
             <input type="hidden" name="action" value="complete">
-            <button type="submit">Mark completed (ambulance becomes available)</button>
+            <button type="submit">Mark completed</button>
         </form>
         {% endif %}
         <form method="post">
             {% csrf_token %}
             <input type="hidden" name="action" value="cancel">
-            <button type="submit">Cancel call</button>
+            <button type="submit" class="danger outline">Cancel call</button>
         </form>
+        </div>
+        {% if call.status == 'dispatched' %}<p class="form-note">Completing a call makes the ambulance available again.</p>{% endif %}
     </section>
     {% endif %}
 {% endblock %}

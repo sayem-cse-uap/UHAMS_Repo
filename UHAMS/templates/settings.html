@@ -7,10 +7,10 @@
 
     <section class="settings-section">
         <h2>Account</h2>
-        <table class="data-table">
+        <div class="table-wrap"><table class="data-table">
             <tr><th>Username</th><td>{{ account_user.username }}</td></tr>
             <tr><th>Account type</th><td>{{ account_user.get_role_display }}</td></tr>
-        </table>
+        </table></div>
         <form method="post">
             {% csrf_token %}
             <input type="hidden" name="section" value="account">
@@ -23,11 +23,11 @@
     <section class="settings-section">
         <h2>{{ account_user.get_role_display }} profile</h2>
         {% if profile_rows %}
-        <table class="data-table">
+        <div class="table-wrap"><table class="data-table">
             {% for label, value in profile_rows %}
             <tr><th>{{ label }}</th><td>{{ value }}</td></tr>
             {% endfor %}
-        </table>
+        </table></div>
         {% endif %}
         <form method="post">
             {% csrf_token %}
@@ -36,9 +36,9 @@
             <button type="submit">Save profile</button>
         </form>
         {% if account_user.role == 'DOCTOR' %}
-        <p><a class="btn-link" href="{% url 'doctor-schedule' %}">Manage my schedule</a></p>
+        <div class="actions"><a class="btn-link" href="{% url 'doctors:schedule' %}">Manage my schedule</a></div>
         {% elif account_user.role == 'DRIVER' %}
-        <p><a class="btn-link" href="{% url 'my-ambulance' %}">Open my ambulance</a></p>
+        <div class="actions"><a class="btn-link" href="{% url 'ambulances:mine' %}">Open my ambulance</a></div>
         {% endif %}
         {% if account_user.role == 'STAFF' %}
         <p class="form-note">Title, department, role, salary and access level can only be changed by a manager.</p>

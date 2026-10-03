@@ -3,13 +3,12 @@
 {% block title %} UHAMS - Patient Dashboard {% endblock %}
 
 {% block content %}
-    <h1>Patient Dashboard Page, {{ logged_in_user.username }}</h1>
-    <p> Welecome to UHAMS, we are still in development though.. but welcome anyways.</p>
-    <a href="{% url 'logout' %}">Logout</a>
+    <h1>Hello, {{ logged_in_user.username }}</h1>
+    <p class="lede">Track your appointments and request a visit with a doctor.</p>
 
-    <h2>My Appointments</h2>
+    <h2>My appointments</h2>
     {% if appointments %}
-    <table class="data-table">
+    <div class="table-wrap"><table class="data-table">
         <thead>
             <tr><th>Doctor</th><th>Status</th><th>Date</th><th>Time</th><th>Room</th></tr>
         </thead>
@@ -34,14 +33,14 @@
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
     {% else %}
     <p>You have no appointments yet. Pick a doctor below to request one.</p>
     {% endif %}
 
-    <h2>Doctors</h2>
+    <h2>Find a doctor</h2>
     {% if doctors %}
-    <table class="data-table">
+    <div class="table-wrap"><table class="data-table">
         <thead>
             <tr><th>Doctor</th><th>Specialization</th><th>Fee</th><th>Available</th><th></th></tr>
         </thead>
@@ -58,11 +57,11 @@
                         Schedule not set yet
                     {% endfor %}
                 </td>
-                <td><a class="btn-link" href="{% url 'book-appointment' doc.id %}">Request Appointment</a></td>
+                <td><a class="btn-link" href="{% url 'patients:book-appointment' doc.id %}">Request appointment</a></td>
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
     {% else %}
     <p>No doctors are registered yet.</p>
     {% endif %}

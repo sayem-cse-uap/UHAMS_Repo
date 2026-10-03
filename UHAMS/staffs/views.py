@@ -27,7 +27,7 @@ def register_staff(request):
         if form.is_valid():
             profile = form.save()
             messages.success(request, f"Staff member {profile.user.username} registered successfully!")
-            return redirect('manage-staff-detail', pk=profile.pk)
+            return redirect('staffs:member-detail', pk=profile.pk)
     else:
         form = StaffRegistrationForm(actor=actor)
 
@@ -116,48 +116,48 @@ def manage_staff_detail(request, pk):
     if request.method == 'POST':
         if not can_manage:
             messages.error(request, "Only an administrator can modify an administrator's profile.")
-            return redirect('manage-staff-detail', pk=target.pk)
+            return redirect('staffs:member-detail', pk=target.pk)
         if action in SENSITIVE_ACTIONS and not can_sensitive:
             messages.error(request, "You cannot change your own role or salary.")
-            return redirect('manage-staff-detail', pk=target.pk)
+            return redirect('staffs:member-detail', pk=target.pk)
 
         try:
             if action == 'role' and role_form.is_valid():
                 target.changeRoleOfStaff(role_form.cleaned_data['role'], actor)
                 messages.success(request, "Role updated.")
-                return redirect('manage-staff-detail', pk=target.pk)
+                return redirect('staffs:member-detail', pk=target.pk)
 
             if action == 'salary' and salary_form.is_valid():
                 target.changeSalaryOfStaff(salary_form.cleaned_data['salary'], actor)
                 messages.success(request, "Salary updated.")
-                return redirect('manage-staff-detail', pk=target.pk)
+                return redirect('staffs:member-detail', pk=target.pk)
 
             if action == 'details' and details_form.is_valid():
                 target.changeDetailsOfStaff(actor, **details_form.cleaned_data)
                 messages.success(request, "Staff details updated.")
-                return redirect('manage-staff-detail', pk=target.pk)
+                return redirect('staffs:member-detail', pk=target.pk)
 
             if action == 'assignment' and assignment_form.is_valid():
                 target.assignStaff(assignment_form.cleaned_data['assignment'], assigned_by=actor)
                 messages.success(request, "Assignment updated.")
-                return redirect('manage-staff-detail', pk=target.pk)
+                return redirect('staffs:member-detail', pk=target.pk)
 
             if action == 'room' and room_form.is_valid():
                 target.ReAllocateRoom(room_form.cleaned_data['room'], assigned_by=actor)
                 messages.success(request, "Staff member moved to the new room.")
-                return redirect('manage-staff-detail', pk=target.pk)
+                return redirect('staffs:member-detail', pk=target.pk)
 
             if action == 'assign_patient' and assign_patient_form.is_valid():
                 patient = assign_patient_form.cleaned_data['patient']
                 target.managePatient(patient, 'assign')
                 messages.success(request, f"{patient.user.username} assigned to {target.user.username}.")
-                return redirect('manage-staff-detail', pk=target.pk)
+                return redirect('staffs:member-detail', pk=target.pk)
 
             if action == 'release_patient' and release_form.is_valid():
                 patient = release_form.cleaned_data['patient']
                 target.managePatient(patient, 'release')
                 messages.success(request, f"{patient.user.username} released.")
-                return redirect('manage-staff-detail', pk=target.pk)
+                return redirect('staffs:member-detail', pk=target.pk)
         except ValidationError as exc:
             for message in exc.messages:
                 messages.error(request, message)
@@ -199,14 +199,14 @@ def my_vacations(request):
                 cd = request_form.cleaned_data
                 staff.requestVacation(cd['start_date'], cd['end_date'], cd['reason'])
                 messages.success(request, "Vacation request sent to your managers.")
-                return redirect('my-vacations')
+                return redirect('staffs:vacations')
             if action == 'cancel' and cancel_form.is_valid():
                 cancel_form.cleaned_data['vacation'].cancel(staff)
                 messages.success(request, "Vacation request cancelled.")
-                return redirect('my-vacations')
+                return redirect('staffs:vacations')
             if action == 'cancel':
                 messages.error(request, "That request can no longer be cancelled.")
-                return redirect('my-vacations')
+                return redirect('staffs:vacations')
         except ValidationError as exc:
             if action == 'request':
                 request_form.add_error(None, exc)
@@ -243,7 +243,7 @@ def manage_vacations(request):
                 messages.error(request, str(exc))
         else:
             messages.error(request, "That request could not be found.")
-        return redirect('manage-vacations')
+        return redirect('staffs:vacation-requests')
 
     status = request.GET.get('status', VacationRecord.PENDING).strip()
     records = VacationRecord.objects.select_related('staff__user', 'reviewed_by__user')
@@ -297,7 +297,7 @@ def call_new(request):
                 messages.success(request, f"Ambulance {call.ambulance.ambulance_id} dispatched (driver {driver.get_full_name() or driver.username}).")
             else:
                 messages.warning(request, "No ambulance with a driver is free right now. The call is pending; dispatch one when it becomes available.")
-            return redirect('call-detail', pk=call.pk)
+            return redirect('staffs:call-detail', pk=call.pk)
     else:
         form = EmergencyCallForm()
     return render(request, 'staffs-templates/call-form.html', {'form': form})
@@ -319,15 +319,15 @@ def call_detail(request, pk):
                     raise ValidationError("No ambulance with a driver is available right now.")
                 actor.dispatchAmbulance(ambulance, call)
                 messages.success(request, f"Ambulance {ambulance.ambulance_id} dispatched.")
-                return redirect('call-detail', pk=call.pk)
+                return redirect('staffs:call-detail', pk=call.pk)
             if action == 'complete':
                 actor.completeAmbulanceCall(call)
                 messages.success(request, "Call marked as completed; the ambulance is available again.")
-                return redirect('call-detail', pk=call.pk)
+                return redirect('staffs:call-detail', pk=call.pk)
             if action == 'cancel':
                 actor.cancelAmbulanceCall(call)
                 messages.success(request, "Call cancelled.")
-                return redirect('call-detail', pk=call.pk)
+                return redirect('staffs:call-detail', pk=call.pk)
         except ValidationError as exc:
             for message in exc.messages:
                 messages.error(request, message)

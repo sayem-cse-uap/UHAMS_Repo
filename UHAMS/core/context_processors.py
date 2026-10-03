@@ -25,6 +25,6 @@ def custom_login_required(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if 'user_id' not in request.session:
-            return redirect('login')  # Redirect to your login URL name
+            return redirect('core:login')
         return view_func(request, *args, **kwargs)
     return wrapper

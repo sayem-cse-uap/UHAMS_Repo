@@ -15,11 +15,9 @@ def register_patient(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Patient registered successfully!")
-            return redirect('login')  # Redirect to your desired URL
-        # test_text = "huh? this is not inside else block"
+            return redirect('core:login')
     else:
         form = PatientRegistrationForm()
-        # test_text = "can you see this? views.py inside staffs-templates app"
 
     return render(request, 'patients-templates/register-patient.html', {'form': form})
 
@@ -31,9 +29,9 @@ def _current_user(request):
 def _role_redirect(user):
     """The login view sends every role to the patient dashboard, so send others where they belong."""
     target = {
-        User.Role.DOCTOR: 'doctor-dashboard',
-        User.Role.STAFF: 'staff-dashboard',
-        User.Role.DRIVER: 'driver-dashboard',
+        User.Role.DOCTOR: 'doctors:dashboard',
+        User.Role.STAFF: 'staffs:dashboard',
+        User.Role.DRIVER: 'drivers:dashboard',
     }.get(user.role)
     return redirect(target) if target else None
 
@@ -42,7 +40,7 @@ def _role_redirect(user):
 def patient_dashboard(request):
     user = _current_user(request)
     if user is None:
-        return redirect('login')
+        return redirect('core:login')
     other = _role_redirect(user)
     if other:
         return other
@@ -66,7 +64,7 @@ def book_appointment(request, doctor_id):
     patient = PatientProfile.objects.filter(user=user).first() if user else None
     if patient is None:
         messages.error(request, "Only patients can request appointments.")
-        return redirect('patient-dashboard')
+        return redirect('patients:dashboard')
 
     doctor = get_object_or_404(DoctorProfile.objects.select_related('user'), pk=doctor_id)
 
@@ -81,7 +79,7 @@ def book_appointment(request, doctor_id):
                 status=Appointment.Status.PENDING_CONFIRMATION,
             )
             messages.success(request, f"Your appointment request was sent to Dr. {doctor.user.get_full_name() or doctor.user.username}. You will see the assigned time here once it is confirmed.")
-            return redirect('patient-dashboard')
+            return redirect('patients:dashboard')
     else:
         form = AppointmentRequestForm()
 

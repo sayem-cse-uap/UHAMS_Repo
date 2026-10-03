@@ -25,10 +25,10 @@ def role_required(*roles):
             user = get_logged_in_user(request)
             if user is None:
                 request.session.flush()
-                return redirect("login")
+                return redirect("core:login")
             if roles and user.role not in roles:
                 messages.error(request, "You do not have permission to access that page.")
-                return redirect("home")
+                return redirect("core:home")
             request.uhams_user = user
             return view_func(request, *args, **kwargs)
         return wrapper

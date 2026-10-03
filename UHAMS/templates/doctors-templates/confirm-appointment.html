@@ -10,10 +10,10 @@
         Reason: {{ appointment.reason|default:"-" }}
     </p>
 
-    <form method="post" class="form-block">
+    <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">Confirm Appointment</button>
     </form>
-    <p><a href="{% url 'doctor-dashboard' %}">Back to dashboard</a></p>
+    <p><a href="{% url 'doctors:dashboard' %}">Back to dashboard</a></p>
 {% endblock %}
