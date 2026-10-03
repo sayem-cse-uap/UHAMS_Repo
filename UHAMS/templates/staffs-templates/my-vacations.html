@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %} UHAMS - My Vacations {% endblock %}
+
+{% block content %}
+    <h1>My Vacations</h1>
+    {% if on_leave %}<p><span class="badge confirmed">You are on approved leave today</span></p>{% endif %}
+    <p><a href="{% url 'staff-dashboard' %}">&larr; Dashboard</a></p>
+
+    <section class="settings-section">
+        <h2>Request time off</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="request">
+            {{ request_form.as_p }}
+            <button type="submit">Send request</button>
+        </form>
+    </section>
+
+    <h2>My requests</h2>
+    {% if vacations %}
+    <table class="data-table">
+        <thead><tr><th>From</th><th>To</th><th>Reason</th><th>Status</th><th>Reviewed by</th><th></th></tr></thead>
+        <tbody>
+        {% for v in vacations %}
+            <tr>
+                <td>{{ v.start_date|date:"D, d M Y" }}</td>
+                <td>{{ v.end_date|date:"D, d M Y" }}</td>
+                <td>{{ v.reason|default:"-" }}</td>
+                <td>
+                    {% if v.status == 'approved' %}<span class="badge confirmed">Approved</span>
+                    {% elif v.status == 'rejected' %}<span class="badge done">Rejected</span>
+                    {% else %}<span class="badge">Pending</span>{% endif %}
+                </td>
+                <td>{{ v.reviewed_by.user.username|default:"-" }}</td>
+                <td>
+                    {% if v.status == 'pending' %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="cancel">
+                        <input type="hidden" name="vacation" value="{{ v.pk }}">
+                        <button type="submit">Cancel request</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>You have not requested any time off yet.</p>
+    {% endif %}
+{% endblock %}

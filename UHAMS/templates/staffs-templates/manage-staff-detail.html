@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %} UHAMS - Manage {{ target.user.username }} {% endblock %}
+
+{% block content %}
+    <h1>{{ target.user.get_full_name|default:target.user.username }}</h1>
+    <p><a href="{% url 'manage-staff' %}">&larr; All staff</a></p>
+
+    <section class="settings-section">
+        <h2>Summary</h2>
+        <table class="data-table">
+            <tr><th>Username</th><td>{{ target.user.username }}</td></tr>
+            <tr><th>Email</th><td>{{ target.user.email|default:"-" }}</td></tr>
+            <tr><th>Phone</th><td>{{ target.user.phone|default:"-" }}</td></tr>
+            <tr><th>Title</th><td>{{ target.title }}</td></tr>
+            <tr><th>Role</th><td>{{ target.get_role_display }}</td></tr>
+            <tr><th>Department</th><td>{{ target.department }}</td></tr>
+            <tr><th>Access level</th><td>{{ target.get_access_level_display }}</td></tr>
+            <tr><th>Salary</th><td>{{ target.salary }}</td></tr>
+            <tr><th>Available</th><td>{{ target.availability_status|yesno:"Yes,No" }}</td></tr>
+            <tr><th>On approved leave today</th><td>{{ target.is_on_leave|yesno:"Yes,No" }}</td></tr>
+            <tr><th>Current assignment</th><td>{{ target.current_assignment|default:"None" }}</td></tr>
+        </table>
+    </section>
+
+    {% if not can_manage %}
+    <p class="form-note">Only an administrator can modify an administrator's profile.</p>
+    {% else %}
+
+    <section class="settings-section">
+        <h2>Details</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="details">
+            {{ details_form.as_p }}
+            <button type="submit">Save details</button>
+        </form>
+        {% if is_self %}<p class="form-note">You cannot change your own access level, role or salary.</p>{% endif %}
+    </section>
+
+    {% if can_sensitive %}
+    <section class="settings-section">
+        <h2>Role</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="role">
+            {{ role_form.as_p }}
+            <button type="submit">Change role</button>
+        </form>
+    </section>
+
+    <section class="settings-section">
+        <h2>Salary</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="salary">
+            {{ salary_form.as_p }}
+            <button type="submit">Change salary</button>
+        </form>
+    </section>
+    {% endif %}
+
+    <section class="settings-section">
+        <h2>Assignment</h2>
+        <p>Current: <strong>{{ target.current_assignment|default:"None" }}</strong></p>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="assignment">
+            {{ assignment_form.as_p }}
+            <button type="submit">Assign</button>
+        </form>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="room">
+            {{ room_form.as_p }}
+            <button type="submit">Reallocate room</button>
+        </form>
+    </section>
+
+    <section class="settings-section">
+        <h2>Patients</h2>
+        {% if assigned_patients %}
+        <table class="data-table">
+            <thead><tr><th>Patient</th><th>Blood group</th><th></th></tr></thead>
+            <tbody>
+            {% for p in assigned_patients %}
+                <tr>
+                    <td>{{ p.user.get_full_name|default:p.user.username }}</td>
+                    <td>{{ p.bloodGroup }}</td>
+                    <td>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="release_patient">
+                            <input type="hidden" name="release-patient" value="{{ p.pk }}">
+                            <button type="submit">Release</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No patients assigned.</p>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="assign_patient">
+            {{ assign_patient_form.as_p }}
+            <button type="submit">Assign patient</button>
+        </form>
+        {% if not target.availability_status %}<p class="form-note">This staff member is marked unavailable, so patients cannot be assigned until they are available again.</p>{% endif %}
+        {% if target.is_on_leave %}<p class="form-note">This staff member is on approved leave today, so patients cannot be assigned right now.</p>{% endif %}
+    </section>
+
+    {% endif %}
+
+    <section class="settings-section">
+        <h2>Assignment history</h2>
+        {% if assignment_history %}
+        <table class="data-table">
+            <thead><tr><th>Assignment</th><th>From</th><th>Until</th><th>By</th></tr></thead>
+            <tbody>
+            {% for a in assignment_history %}
+                <tr>
+                    <td>{{ a.assignment }}</td>
+                    <td>{{ a.started_at|date:"d M Y H:i" }}</td>
+                    <td>{{ a.ended_at|date:"d M Y H:i"|default:"current" }}</td>
+                    <td>{{ a.assigned_by.user.username|default:"-" }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}<p>No assignments yet.</p>{% endif %}
+    </section>
+
+    <section class="settings-section">
+        <h2>Vacations</h2>
+        {% if vacations %}
+        <table class="data-table">
+            <thead><tr><th>From</th><th>To</th><th>Reason</th><th>Status</th></tr></thead>
+            <tbody>
+            {% for v in vacations %}
+                <tr><td>{{ v.start_date }}</td><td>{{ v.end_date }}</td><td>{{ v.reason|default:"-" }}</td><td>{{ v.get_status_display }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}<p>No vacation requests.</p>{% endif %}
+        <p><a href="{% url 'manage-vacations' %}">Review all vacation requests</a></p>
+    </section>
+{% endblock %}

@@ -87,6 +87,8 @@ class StaffProfile(models.Model):
         if action == "assign":
             if not self.availability_status:
                 raise ValidationError("This staff member is not available.")
+            if self.is_on_leave():
+                raise ValidationError("This staff member is on approved leave today.")
             patient.assigned_staff = self
         elif action == "release":
             if patient.assigned_staff_id != self.pk:
@@ -141,6 +143,22 @@ class StaffProfile(models.Model):
     def checkVacationHistoryOfStaff(self):
         return self.vacations.order_by("-start_date")
 
+    def is_on_leave(self, on=None):
+        """True if the staff member has an approved vacation covering the given date (default today)."""
+        on = on or timezone.localdate()
+        return self.vacations.filter(
+            status=VacationRecord.APPROVED, start_date__lte=on, end_date__gte=on
+        ).exists()
+
+    def requestVacation(self, start_date, end_date, reason=""):
+        """Create a pending vacation request for this staff member."""
+        if start_date < timezone.localdate():
+            raise ValidationError("A vacation cannot start in the past.")
+        record = VacationRecord(staff=self, start_date=start_date, end_date=end_date, reason=reason)
+        record.full_clean()  # runs VacationRecord.clean(): date order and overlap checks
+        record.save()
+        return record
+
     # ------------------------------------------------------------------
     # Listing staff
     # ------------------------------------------------------------------
@@ -183,6 +201,10 @@ class StaffProfile(models.Model):
         """Send an ambulance (with its driver) to an emergency call."""
         from ambulances.models import Ambulance
 
+        if call.status != AmbulanceCall.PENDING:
+            raise ValidationError("Only pending calls can be dispatched.")
+        # Re-read under a row lock so two staff cannot send the same ambulance.
+        ambulance = Ambulance.objects.select_for_update().get(pk=ambulance.pk)
         if not ambulance.is_available:
             raise ValidationError("Ambulance is not available or has no driver assigned.")
         ambulance.status = Ambulance.Status.ON_TRIP
@@ -206,6 +228,22 @@ class StaffProfile(models.Model):
             ambulance.status = Ambulance.Status.AVAILABLE
             ambulance.save(update_fields=["status"])
         call.status = AmbulanceCall.COMPLETED
+        call.save(update_fields=["status"])
+        return call
+
+    @transaction.atomic
+    def cancelAmbulanceCall(self, call):
+        """Cancel a pending or dispatched call; a dispatched call frees its ambulance."""
+        from ambulances.models import Ambulance
+
+        if call.status not in (AmbulanceCall.PENDING, AmbulanceCall.DISPATCHED):
+            raise ValidationError("Only open calls can be cancelled.")
+        ambulance = call.ambulance
+        if call.status == AmbulanceCall.DISPATCHED and ambulance is not None \
+                and ambulance.status == Ambulance.Status.ON_TRIP:
+            ambulance.status = Ambulance.Status.AVAILABLE
+            ambulance.save(update_fields=["status"])
+        call.status = AmbulanceCall.CANCELLED
         call.save(update_fields=["status"])
         return call
 
@@ -241,29 +279,96 @@ class StaffAssignment(models.Model):
 
 
 class VacationRecord(models.Model):
+    PENDING, APPROVED, REJECTED = "pending", "approved", "rejected"
+    STATUS_CHOICES = [
+        (PENDING, "Pending"),
+        (APPROVED, "Approved"),
+        (REJECTED, "Rejected"),
+    ]
+
     staff = models.ForeignKey(StaffProfile, on_delete=models.CASCADE, related_name="vacations")
     start_date = models.DateField()
     end_date = models.DateField()
     reason = models.CharField(max_length=255, blank=True)
-    approved = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=PENDING)
+    reviewed_by = models.ForeignKey(
+        StaffProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-start_date"]
 
+    @property
+    def approved(self):
+        return self.status == self.APPROVED
+
     def clean(self):
-        if self.start_date and self.end_date and self.end_date < self.start_date:
+        if not (self.start_date and self.end_date):
+            return
+        if self.end_date < self.start_date:
             raise ValidationError("End date cannot be before start date.")
+        if self.staff_id and self.status in (self.PENDING, self.APPROVED):
+            overlap = VacationRecord.objects.filter(
+                staff_id=self.staff_id,
+                status__in=[self.PENDING, self.APPROVED],
+                start_date__lte=self.end_date,
+                end_date__gte=self.start_date,
+            ).exclude(pk=self.pk)
+            if overlap.exists():
+                raise ValidationError("This overlaps with another pending or approved vacation.")
+
+    # -- review workflow ------------------------------------------------
+    def review_block_reason(self, reviewer):
+        """None if `reviewer` may approve/reject this request, otherwise why not."""
+        if not isinstance(reviewer, StaffProfile) or not reviewer.is_manager:
+            return "Only managers can review vacation requests."
+        if self.status != self.PENDING:
+            return "Only pending requests can be reviewed."
+        is_admin = reviewer.access_level == StaffProfile.ACCESS_ADMIN
+        if reviewer.pk == self.staff_id and not is_admin:
+            return "You cannot review your own vacation request."
+        if self.staff.access_level == StaffProfile.ACCESS_ADMIN and not is_admin:
+            return "Only an administrator can review an administrator's request."
+        return None
+
+    def _review(self, reviewer, new_status):
+        reason = self.review_block_reason(reviewer)
+        if reason:
+            if self.status != self.PENDING:
+                raise ValidationError(reason)
+            raise PermissionDenied(reason)
+        self.status = new_status
+        self.reviewed_by = reviewer
+        self.reviewed_at = timezone.now()
+        self.save(update_fields=["status", "reviewed_by", "reviewed_at"])
+        return self
+
+    def approve(self, reviewer):
+        return self._review(reviewer, self.APPROVED)
+
+    def reject(self, reviewer):
+        return self._review(reviewer, self.REJECTED)
+
+    def cancel(self, staff):
+        """The owner withdraws a request that has not been reviewed yet."""
+        if staff.pk != self.staff_id:
+            raise PermissionDenied("You can only cancel your own vacation requests.")
+        if self.status != self.PENDING:
+            raise ValidationError("Only pending requests can be cancelled.")
+        self.delete()
 
     def __str__(self):
         return f"{self.staff} on leave {self.start_date} to {self.end_date}"
 
 
 class AmbulanceCall(models.Model):
-    PENDING, DISPATCHED, COMPLETED = "pending", "dispatched", "completed"
+    PENDING, DISPATCHED, COMPLETED, CANCELLED = "pending", "dispatched", "completed", "cancelled"
     STATUS_CHOICES = [
         (PENDING, "Pending"),
         (DISPATCHED, "Dispatched"),
         (COMPLETED, "Completed"),
+        (CANCELLED, "Cancelled"),
     ]
 
     location = models.CharField(max_length=255)

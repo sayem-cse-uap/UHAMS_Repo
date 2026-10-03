@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %} UHAMS - Manage Staff {% endblock %}
+
+{% block content %}
+    <h1>Manage Staff</h1>
+    <p><a class="btn-link" href="{% url 'register_staff' %}">Register new staff member</a>
+       <a href="{% url 'staff-dashboard' %}">Back to dashboard</a></p>
+
+    <form method="get">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search name, title or department">
+        <select name="role">
+            <option value="">All roles</option>
+            {% for value, label in role_choices %}
+            <option value="{{ value }}" {% if value == selected_role %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <select name="access">
+            <option value="">All access levels</option>
+            {% for value, label in access_choices %}
+            <option value="{{ value }}" {% if value == selected_access %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+
+    {% if staff_members %}
+    <table class="data-table">
+        <thead>
+            <tr><th>Name</th><th>Title</th><th>Role</th><th>Department</th><th>Access</th><th>Salary</th><th>Available</th><th>Assignment</th><th></th></tr>
+        </thead>
+        <tbody>
+        {% for s in staff_members %}
+            <tr>
+                <td>{{ s.user.get_full_name|default:s.user.username }}<br><small>{{ s.user.username }}</small></td>
+                <td>{{ s.title }}</td>
+                <td>{{ s.get_role_display }}</td>
+                <td>{{ s.department }}</td>
+                <td>{{ s.get_access_level_display }}</td>
+                <td>{{ s.salary }}</td>
+                <td>{{ s.availability_status|yesno:"Yes,No" }}</td>
+                <td>{{ s.current_assignment|default:"-" }}</td>
+                <td><a class="btn-link" href="{% url 'manage-staff-detail' s.pk %}">Manage</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No staff members match.</p>
+    {% endif %}
+{% endblock %}

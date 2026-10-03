@@ -48,6 +48,11 @@ class Ambulance(models.Model):
         return f"{self.ambulance_id} ({self.registration_number})"
 
     @property
+    def active_call(self):
+        """The emergency call this ambulance is currently dispatched to, if any."""
+        return self.calls.filter(status='dispatched').first()
+
+    @property
     def is_available(self):
         return self.status == self.Status.AVAILABLE and self.driver_id is not None
 

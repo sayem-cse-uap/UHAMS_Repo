@@ -11,5 +11,15 @@ class StaffProfileAdmin(admin.ModelAdmin):
 
 
 admin.site.register(StaffAssignment)
-admin.site.register(VacationRecord)
-admin.site.register(AmbulanceCall)
+
+
+@admin.register(VacationRecord)
+class VacationRecordAdmin(admin.ModelAdmin):
+    list_display = ("staff", "start_date", "end_date", "status", "reviewed_by")
+    list_filter = ("status",)
+
+
+@admin.register(AmbulanceCall)
+class AmbulanceCallAdmin(admin.ModelAdmin):
+    list_display = ("location", "status", "ambulance", "handled_by", "created_at")
+    list_filter = ("status",)

@@ -25,6 +25,12 @@
                 {% if logged_in_user.role == 'STAFF' %}
                 <li><a href="{% url 'staff-dashboard' %}">Staff Dashboard</a></li>
                 <li><a href="{% url 'ambulance-list' %}">Ambulances</a></li>
+                <li><a href="{% url 'call-list' %}">Emergency Calls</a></li>
+                <li><a href="{% url 'my-vacations' %}">My Vacations</a></li>
+                {% if is_staff_manager %}
+                <li><a href="{% url 'manage-staff' %}">Manage Staff</a></li>
+                <li><a href="{% url 'manage-vacations' %}">Vacation Requests</a></li>
+                {% endif %}
                 {% endif %}
                 {% if logged_in_user %}
                 <li><a href="{% url 'settings' %}">Settings</a></li>

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %} UHAMS - Emergency Calls {% endblock %}
+
+{% block content %}
+    <h1>Emergency Ambulance Calls</h1>
+    <p>Pending calls: <strong>{{ pending_count }}</strong> &middot; Ambulances free to dispatch: <strong>{{ free_ambulances }}</strong></p>
+    <p><a class="btn-link" href="{% url 'call-new' %}">Log new emergency call</a>
+       <a href="{% url 'staff-dashboard' %}">Back to dashboard</a></p>
+
+    <form method="get">
+        <select name="status">
+            <option value="" {% if not selected_status %}selected{% endif %}>All calls</option>
+            {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if value == selected_status %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+
+    {% if calls %}
+    <table class="data-table">
+        <thead><tr><th>Logged</th><th>Location</th><th>Status</th><th>Ambulance</th><th>Handled by</th><th></th></tr></thead>
+        <tbody>
+        {% for call in calls %}
+            <tr>
+                <td>{{ call.created_at|date:"d M Y H:i" }}</td>
+                <td>{{ call.location }}</td>
+                <td>
+                    {% if call.status == 'pending' %}<span class="badge">Pending</span>
+                    {% elif call.status == 'dispatched' %}<span class="badge confirmed">Dispatched</span>
+                    {% else %}<span class="badge done">{{ call.get_status_display }}</span>{% endif %}
+                </td>
+                <td>{{ call.ambulance.ambulance_id|default:"-" }}</td>
+                <td>{{ call.handled_by.user.username|default:"-" }}</td>
+                <td><a class="btn-link" href="{% url 'call-detail' call.pk %}">Open</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No calls logged.</p>
+    {% endif %}
+{% endblock %}

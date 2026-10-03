@@ -11,6 +11,13 @@
     {% else %}
     <p>No staff profile is attached to this account yet. Ask an administrator to create one.</p>
     {% endif %}
+    <p><a class="btn-link" href="{% url 'call-list' %}">Emergency calls</a>
+       <a class="btn-link" href="{% url 'my-vacations' %}">My vacations</a>
+       {% if is_staff_manager %}
+       <a class="btn-link" href="{% url 'manage-staff' %}">Manage staff</a>
+       <a class="btn-link" href="{% url 'manage-vacations' %}">Vacation requests</a>
+       <a class="btn-link" href="{% url 'register_staff' %}">Register staff</a>
+       {% endif %}</p>
     <a href="{% url 'logout' %}">Logout</a>
 
     <h2>All Appointments</h2>
@@ -73,7 +80,7 @@
         <tbody>
         {% for call in ambulance_calls %}
             <tr>
-                <td>{{ call.location }}</td><td>{{ call.get_status_display }}</td>
+                <td><a href="{% url 'call-detail' call.pk %}">{{ call.location }}</a></td><td>{{ call.get_status_display }}</td>
                 <td>{{ call.ambulance.ambulance_id|default:"-" }}</td>
                 <td>{{ call.handled_by.user.username|default:"-" }}</td>
                 <td>{{ call.created_at|date:"d M Y H:i" }}</td>

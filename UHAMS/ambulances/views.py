@@ -169,6 +169,13 @@ def update_ambulance_status(request, ambulance_pk):
     if form.is_valid():
         form.save()
         messages.success(request, f"Status of {ambulance.ambulance_id} set to {ambulance.get_status_display()}.")
+        # A driver freeing the ambulance means the trip is over: close the emergency call.
+        if ambulance.status == Ambulance.Status.AVAILABLE:
+            call = ambulance.active_call
+            if call is not None:
+                call.status = 'completed'
+                call.save(update_fields=['status'])
+                messages.info(request, f"Emergency call at {call.location} marked as completed.")
     else:
         for error in form.errors.get('status', []):
             messages.error(request, error)

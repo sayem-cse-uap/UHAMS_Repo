@@ -4,6 +4,7 @@
 
 {% block content %}
     <h1> Staff Registration Page </h1>
+    <p><a href="{% url 'manage-staff' %}">&larr; Back to Manage Staff</a></p>
     <form method="POST">
         {% csrf_token %}
         {{ form.as_p }}

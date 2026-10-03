@@ -24,6 +24,14 @@
         <li>Equipment notes: {{ ambulance.equipment_notes|default:"-" }}</li>
     </ul>
 
+    {% with call=ambulance.active_call %}
+    {% if call %}
+    <h3>Current emergency call</h3>
+    <p><strong>{{ call.location }}</strong>{% if call.description %} &mdash; {{ call.description }}{% endif %}
+       (logged {{ call.created_at|date:"d M Y H:i" }})</p>
+    {% endif %}
+    {% endwith %}
+
     <h3>Update Status</h3>
     <form method="POST" action="{% url 'update-ambulance-status' ambulance.pk %}">
         {% csrf_token %}

@@ -13,6 +13,12 @@
             <a href="{% url 'ambulance-detail' logged_in_user.driverprofile.ambulance.pk %}">{{ logged_in_user.driverprofile.ambulance.ambulance_id }}</a>
             - {{ logged_in_user.driverprofile.ambulance.get_status_display }}
         </p>
+        {% with call=logged_in_user.driverprofile.ambulance.active_call %}
+        {% if call %}
+        <h2>Dispatched to an emergency call</h2>
+        <p><strong>{{ call.location }}</strong>{% if call.description %} &mdash; {{ call.description }}{% endif %}</p>
+        {% endif %}
+        {% endwith %}
     {% else %}
         <p>No ambulance assigned yet.</p>
     {% endif %}

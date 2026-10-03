@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %} UHAMS - Vacation Requests {% endblock %}
+
+{% block content %}
+    <h1>Vacation Requests</h1>
+    <p><a href="{% url 'manage-staff' %}">&larr; Manage Staff</a></p>
+
+    <form method="get">
+        <select name="status">
+            <option value="" {% if not selected_status %}selected{% endif %}>All</option>
+            {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if value == selected_status %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+
+    {% if records %}
+    <table class="data-table">
+        <thead><tr><th>Staff</th><th>From</th><th>To</th><th>Reason</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        {% for v in records %}
+            <tr>
+                <td><a href="{% url 'manage-staff-detail' v.staff.pk %}">{{ v.staff.user.get_full_name|default:v.staff.user.username }}</a></td>
+                <td>{{ v.start_date|date:"D, d M Y" }}</td>
+                <td>{{ v.end_date|date:"D, d M Y" }}</td>
+                <td>{{ v.reason|default:"-" }}</td>
+                <td>
+                    {% if v.status == 'approved' %}<span class="badge confirmed">Approved</span>
+                    {% elif v.status == 'rejected' %}<span class="badge done">Rejected</span>
+                    {% else %}<span class="badge">Pending</span>{% endif %}
+                    {% if v.reviewed_by %}<br><small>by {{ v.reviewed_by.user.username }}</small>{% endif %}
+                </td>
+                <td>
+                    {% if v.can_review %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="vacation" value="{{ v.pk }}">
+                        <button type="submit" name="decision" value="approve">Approve</button>
+                        <button type="submit" name="decision" value="reject">Reject</button>
+                    </form>
+                    {% elif v.review_note %}
+                    <small>{{ v.review_note }}</small>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No vacation requests here.</p>
+    {% endif %}
+{% endblock %}
