@@ -1,9 +1,13 @@
 {% extends 'base.html' %}
+{# staff-dashboard.html - the staff home page (staffs.views.staff_dashboard). #}
+{# Variables: my_profile, appointments, doctors, patients, staffs (all staff), ambulance_calls #}
+{# (the 10 most recent). Top: quick actions + counts. Below: one table for each of those lists. #}
 
 {% block title %} UHAMS - Staff Dashboard {% endblock %}
 
 {% block content %}
     <h1>Hello, {{ logged_in_user.get_full_name|default:logged_in_user.username }}</h1>
+    {# A STAFF account can exist without a StaffProfile; in that case show a hint instead of the job details. #}
     {% if my_profile %}
     <p class="lede">{{ my_profile.title }}, {{ my_profile.department }} department, {{ my_profile.get_role_display }}.
         {% if my_profile.availability_status %}<span class="badge confirmed">Available</span>{% else %}<span class="badge">Unavailable</span>{% endif %}</p>
@@ -11,6 +15,7 @@
     <p class="lede">No staff profile is attached to this account yet. Ask an administrator to create one.</p>
     {% endif %}
 
+    {# Quick-action buttons. The last three only appear for managers/admins (`is_staff_manager`). #}
     <div class="actions">
         <a class="btn-link" href="{% url 'staffs:call-create' %}">Log emergency call</a>
         <a class="btn-link secondary" href="{% url 'staffs:call-list' %}">Emergency calls</a>
@@ -22,6 +27,7 @@
         {% endif %}
     </div>
 
+    {# Summary tiles. `|length` counts the items of each list. #}
     <div class="stats">
         <div class="stat"><strong>{{ appointments|length }}</strong><span>Appointments</span></div>
         <div class="stat"><strong>{{ doctors|length }}</strong><span>Doctors</span></div>
@@ -29,6 +35,7 @@
         <div class="stat"><strong>{{ staffs|length }}</strong><span>Staff</span></div>
     </div>
 
+    {# --- Every appointment in the hospital (status chip: amber waiting, green confirmed, grey done) --- #}
     <h2>All appointments</h2>
     {% if appointments %}
     <div class="table-wrap"><table class="data-table">
@@ -47,6 +54,7 @@
     </table></div>
     {% else %}<p>No appointments yet.</p>{% endif %}
 
+    {# --- Doctors --- #}
     <h2>Doctors</h2>
     {% if doctors %}
     <div class="table-wrap"><table class="data-table">
@@ -55,6 +63,7 @@
     </table></div>
     {% else %}<p>No doctors yet.</p>{% endif %}
 
+    {# --- Patients and the staff member each one is assigned to --- #}
     <h2>Patients</h2>
     {% if patients %}
     <div class="table-wrap"><table class="data-table">
@@ -67,6 +76,7 @@
     </table></div>
     {% else %}<p>No patients yet.</p>{% endif %}
 
+    {# --- Staff profiles with their availability --- #}
     <h2>Staff</h2>
     {% if staffs %}
     <div class="table-wrap"><table class="data-table">
@@ -82,6 +92,7 @@
     </table></div>
     {% else %}<p>No staff profiles yet.</p>{% endif %}
 
+    {# --- The latest emergency calls; the location links to the call page. Red chip = still pending. --- #}
     <h2>Recent ambulance calls</h2>
     {% if ambulance_calls %}
     <div class="table-wrap"><table class="data-table">

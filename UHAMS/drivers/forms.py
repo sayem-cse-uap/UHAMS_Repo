@@ -1,3 +1,4 @@
+"""drivers.forms - driver registration and editing the driver's own settings."""
 from django import forms
 from django.db import transaction
 
@@ -6,6 +7,9 @@ from drivers.models import DriverProfile
 
 
 class DriverRegistrationForm(forms.Form):
+    """Sign-up form for a driver. Plain Form that creates both the User and the
+    DriverProfile in save() (same approach as the patient and doctor forms)."""
+    # --- login account fields (go to core.User) ---
     username = forms.CharField(max_length=255)
     email = forms.EmailField()
     first_name = forms.CharField(max_length=255)
@@ -14,15 +18,20 @@ class DriverRegistrationForm(forms.Form):
     confirm_password = forms.CharField(widget=forms.PasswordInput())
 
 
+    # --- driver details (go to DriverProfile) ---
     driver_license_number = forms.CharField(max_length=255)
     shift_status = forms.CharField(max_length=255)
+    # Typed in by the driver at sign-up. Staff later link a real Ambulance to
+    # this driver (ambulances app), which then overwrites this text.
     assigned_ambulance_ID = forms.CharField(max_length=255)
 
+    # NOTE: ignored on a plain Form; kept as documentation (see PatientRegistrationForm).
     class Meta:
         model = DriverProfile
         fields = ['driver_license_number', 'shift_status', 'assigned_ambulance_ID']
 
     def clean(self):
+        """Whole-form checks: passwords match and the username is free."""
         cleaned_data = super().clean()
         password = cleaned_data.get("password")
         confirm_password = cleaned_data.get("confirm_password")
@@ -47,7 +56,8 @@ class DriverRegistrationForm(forms.Form):
                 role=User.Role.DRIVER if hasattr(User, 'Role') else 'DRIVER'
             )
 
-            # Create StaffProfile linked to the new user
+            # Create the DriverProfile linked to the new user
+            # (the original comment here said "StaffProfile"; it is the driver's profile.)
             driver_profile = DriverProfile.objects.create(
                 user=user,
                 driver_license_number=self.cleaned_data['driver_license_number'],
@@ -58,6 +68,8 @@ class DriverRegistrationForm(forms.Form):
 
 
 class DriverSettingsForm(forms.ModelForm):
+    """Only the shift status is editable by the driver; the licence number and
+    ambulance are shown read-only on the Settings page."""
     class Meta:
         model = DriverProfile
         fields = ['shift_status']

@@ -1,4 +1,9 @@
 {% extends 'base.html' %}
+{# driver-dashboard.html - the driver's home (drivers.views.driver_dashboard). #}
+{# The view passes no variables. The page reaches the data through relations on `logged_in_user`: #}
+{#     logged_in_user.driverprofile             -> the driver's DriverProfile (reverse of DriverProfile.user) #}
+{#     logged_in_user.driverprofile.ambulance   -> the Ambulance linked to them (reverse of Ambulance.driver) #}
+{#     ....ambulance.active_call                -> the emergency call it is currently dispatched to, if any #}
 
 {% block title %} UHAMS - Driver Dashboard {% endblock %}
 
@@ -6,13 +11,16 @@
     <h1>Hello, {{ logged_in_user.username }}</h1>
     <p class="lede">Your assigned ambulance and any active emergency call.</p>
     <h2>My Ambulance</h2>
+    {# The driver has an ambulance: show its ID (link to the detail page) and a status chip. #}
     {% if logged_in_user.driverprofile.ambulance %}
         <div class="panel">
             <p><a href="{% url 'ambulances:detail' logged_in_user.driverprofile.ambulance.pk %}"><strong>{{ logged_in_user.driverprofile.ambulance.ambulance_id }}</strong></a>
                <span class="badge {% if logged_in_user.driverprofile.ambulance.status == 'AVAILABLE' %}confirmed{% elif logged_in_user.driverprofile.ambulance.status != 'ON_TRIP' %}done{% endif %}">{{ logged_in_user.driverprofile.ambulance.get_status_display }}</span></p>
         </div>
+        {# `with` stores the call in a short variable so the property is evaluated only once. #}
         {% with call=logged_in_user.driverprofile.ambulance.active_call %}
         {% if call %}
+        {# A dispatched ambulance means staff sent this driver to an emergency: show where to go. #}
         <h2>Dispatched to an emergency call</h2>
         <div class="panel" style="border-left:4px solid var(--alert)">
         <p style="margin:0"><strong>{{ call.location }}</strong>{% if call.description %} &mdash; {{ call.description }}{% endif %}</p>
@@ -20,6 +28,7 @@
         {% endif %}
         {% endwith %}
     {% else %}
+        {# No ambulance has been linked to this driver yet (staff assign it on the ambulance edit page). #}
         <p>No ambulance assigned yet.</p>
     {% endif %}
 {% endblock %}

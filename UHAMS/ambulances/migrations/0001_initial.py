@@ -1,3 +1,16 @@
+# -----------------------------------------------------------------------------
+# MIGRATION  (ambulances/migrations/0001_initial.py)
+#
+# What is a migration? Django records every change to the models as a small
+# Python file like this one. `python manage.py migrate` runs the files that have
+# not been applied yet, in dependency order, and turns them into SQL for the
+# database (db.sqlite3). That is how the database tables stay in step with
+# models.py.
+#
+# This one: creates the Ambulance table (ID, plate, model, type, capacity, status,
+# equipment notes, last service date) with an optional one-to-one link to a
+# DriverProfile. It depends on drivers 0001 for that link.
+# -----------------------------------------------------------------------------
 import django.core.validators
 import django.db.models.deletion
 from django.db import migrations, models

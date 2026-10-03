@@ -1,23 +1,46 @@
 {% load static %}<!DOCTYPE html>
+{# base.html - the master layout that EVERY page extends. #}
+{# #}
+{# How template inheritance works: a page template starts with {% extends 'base.html' %} and #}
+{# only fills the named {% block %} slots defined below (title, body_class, content). #}
+{# Everything else (head, sidebar, top bar, flash messages, scripts) comes from this file. #}
+{# #}
+{# Variables used here are not passed by the views; they come from the context processor #}
+{# core.context_processors.load_logged_in_user (registered in settings.py): #}
+{#   logged_in_user   - the signed-in User, or None   -> chooses sidebar layout vs public layout #}
+{#   is_staff_manager - True for manager/admin staff  -> shows the manager-only menu entries #}
+{#   messages         - flash messages (Django messages framework) #}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}HN-UHAMS{% endblock %}</title>
+    {# Web font (IBM Plex Sans) from Google Fonts. preconnect warms up the connections early; #}
+    {# if the font cannot load, the CSS falls back to system fonts (see --font in style.css). #}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+    {# The project's own stylesheet. {% static %} turns the path into the real /static/... URL. #}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
+{# Body classes: "app" when signed in (turns on the sidebar layout in CSS), plus an optional #}
+{# page-specific class from {% block body_class %} (e.g. "auth" for the narrow login-style pages). #}
 <body class="{% if logged_in_user %}app{% endif %} {% block body_class %}{% endblock %}">
+    {# Accessibility: a link that is invisible until a keyboard user tabs to it; it jumps past the #}
+    {# navigation straight to the main content. #}
     <a class="skip-link" href="#main">Skip to content</a>
 
+    {# ===== SIGNED-IN LAYOUT: left sidebar with a menu that depends on the user's role ===== #}
     {% if logged_in_user %}
+    {# `current` holds the name of the page being shown (e.g. "staffs:call-list") so the matching menu #}
+    {# link can be highlighted with class="active" and aria-current="page". #}
     {% with current=request.resolver_match.view_name %}
     <aside class="sidebar" id="sidebar" aria-label="Main navigation">
         <a href="{% url 'core:home' %}" class="brand">HN-UHAMS<small>Hospital management</small></a>
 
         <ul class="menu">
+            {# One menu per account type. Each <li> compares `current` with the URL names that belong to that #}
+            {# menu item (e.g. both the call list, the new-call form and a call's detail page highlight "Emergency calls"). #}
             {% if logged_in_user.role == 'PATIENT' %}
             <li><a href="{% url 'patients:dashboard' %}" {% if current == 'patients:dashboard' or current == 'patients:book-appointment' %}class="active" aria-current="page"{% endif %}>Find a doctor</a></li>
             {% elif logged_in_user.role == 'DOCTOR' %}
@@ -31,14 +54,17 @@
             <li><a href="{% url 'staffs:call-list' %}" {% if current == 'staffs:call-list' or current == 'staffs:call-create' or current == 'staffs:call-detail' %}class="active" aria-current="page"{% endif %}>Emergency calls</a></li>
             <li><a href="{% url 'ambulances:list' %}" {% if current|slice:":11" == 'ambulances:' %}class="active" aria-current="page"{% endif %}>Ambulances</a></li>
             <li><a href="{% url 'staffs:vacations' %}" {% if current == 'staffs:vacations' %}class="active" aria-current="page"{% endif %}>My vacations</a></li>
+            {# Manager/admin staff get two extra entries. #}
             {% if is_staff_manager %}
             <li class="menu-gap"><a href="{% url 'staffs:member-list' %}" {% if current == 'staffs:member-list' or current == 'staffs:member-detail' or current == 'staffs:register' %}class="active" aria-current="page"{% endif %}>Manage staff</a></li>
             <li><a href="{% url 'staffs:vacation-requests' %}" {% if current == 'staffs:vacation-requests' %}class="active" aria-current="page"{% endif %}>Vacation requests</a></li>
             {% endif %}
             {% endif %}
+            {# Settings is available to every role, so it sits outside the role-specific menus. #}
             <li class="menu-gap"><a href="{% url 'core:settings' %}" {% if current == 'core:settings' %}class="active" aria-current="page"{% endif %}>Settings</a></li>
         </ul>
 
+        {# Bottom of the sidebar: avatar, username + role, and the log-out link. #}
         <div class="account">
             <img src="{% static 'images/horse-profile-pic.jpg' %}" alt="">
             <div class="account-text">
@@ -51,15 +77,18 @@
     {% endwith %}
     {% endif %}
 
+    {# Right-hand side of the page: top bar (mobile only) + flash messages + the page's own content. #}
     <div class="content">
         {% if logged_in_user %}
         <div class="topbar">
+            {# Hamburger button. It is hidden on wide screens; below 900px it opens the sidebar (see static/js/main.js). #}
             <button type="button" class="nav-toggle" id="nav-toggle" aria-controls="sidebar" aria-expanded="false" aria-label="Open menu">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14"/></svg>
             </button>
             <a href="{% url 'core:home' %}" class="brand">HN-UHAMS</a>
         </div>
         {% else %}
+        {# ===== PUBLIC LAYOUT (not signed in): simple top bar with Log in / Create account ===== #}
         <header class="public-bar">
             <a href="{% url 'core:home' %}" class="brand">HN-UHAMS</a>
             <nav aria-label="Account">
@@ -69,7 +98,10 @@
         </header>
         {% endif %}
 
+        {# The page body. id="main" is the target of the "Skip to content" link above. #}
         <main id="main">
+            {# Flash messages set by views with messages.success/error/info/warning(...). `message.tags` becomes #}
+            {# a CSS class (success, error, ...) that colours the box. They show once, then disappear. #}
             {% if messages %}
             <ul class="messages" role="status">
                 {% for message in messages %}
@@ -77,10 +109,12 @@
                 {% endfor %}
             </ul>
             {% endif %}
+            {# Each page puts its own HTML here. #}
             {% block content %}{% endblock %}
         </main>
     </div>
 
+    {# JavaScript for the mobile menu. Loaded at the end of <body> so the page renders first. #}
     <script src="{% static 'js/main.js' %}"></script>
 </body>
 </html>

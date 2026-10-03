@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
+{# ambulance-detail.html - one ambulance (ambulances.views.ambulance_detail). #}
+{# Used by staff (who also get Edit / Delete and every status) and by the assigned driver #}
+{# (who only sees their own ambulance and a shorter list of statuses). `can_manage` is true for staff. #}
 
 {% block title %} UHAMS - Ambulance {{ ambulance.ambulance_id }} {% endblock %}
 
@@ -6,6 +9,7 @@
     <h1>Ambulance {{ ambulance.ambulance_id }}</h1>
     <p class="lede"><span class="badge {% if ambulance.status == 'AVAILABLE' %}confirmed{% elif ambulance.status != 'ON_TRIP' %}done{% endif %}">{{ ambulance.get_status_display }}</span></p>
 
+    {# Key/value list of the vehicle's data. #}
     <ul class="detail-list">
         <li><span class="k">Registration</span><span>{{ ambulance.registration_number }}</span></li>
         <li><span class="k">Model</span><span>{{ ambulance.model_name|default:"-" }}</span></li>
@@ -23,6 +27,7 @@
         <li><span class="k">Equipment notes</span><span>{{ ambulance.equipment_notes|default:"-" }}</span></li>
     </ul>
 
+    {# If the ambulance is on an emergency call, highlight where it was sent. #}
     {% with call=ambulance.active_call %}
     {% if call %}
     <div class="panel" style="border-left:4px solid var(--alert)">
@@ -34,6 +39,7 @@
     {% endwith %}
 
     <div class="panel">
+        {# Posts to the status URL; the server limits the allowed values per role, not just this dropdown. #}
         <h2>Update status</h2>
         <form method="POST" action="{% url 'ambulances:update-status' ambulance.pk %}">
             {% csrf_token %}
@@ -43,6 +49,7 @@
     </div>
 
     <div class="actions">
+        {# Staff get Edit/Delete; drivers just a link back to their dashboard. #}
         {% if can_manage %}
         <a class="btn-link secondary" href="{% url 'ambulances:edit' ambulance.pk %}">Edit</a>
         <a class="btn-link secondary" href="{% url 'ambulances:delete' ambulance.pk %}">Delete</a>

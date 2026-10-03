@@ -1,15 +1,20 @@
 {% extends 'base.html' %}
+{# confirm-appointment.html - the doctor confirms a request (doctors.views.confirm_appointment). #}
+{# Shows the patient's request, then the AppointmentConfirmForm: pick one of the doctor's time blocks, #}
+{# a date that falls on that block's weekday, and optionally a room number. #}
 
 {% block title %} UHAMS - Confirm Appointment {% endblock %}
 
 {% block content %}
     <h1>Confirm Appointment</h1>
     <p>
+        {# Read-only summary of what the patient asked for. #}
         Patient: <strong>{{ appointment.patient.user.get_full_name|default:appointment.patient.user.username }}</strong><br>
         Requested date: {{ appointment.date|date:"D, d M Y" }}<br>
         Reason: {{ appointment.reason|default:"-" }}
     </p>
 
+    {# Submitting turns the appointment into "Confirmed". #}
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}

@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
+{# manage-staff-list.html - the manager's staff directory (staffs.views.manage_staff_list). #}
+{# The filter bar is a plain GET form: submitting it reloads this page as ?q=...&role=...&access=... #}
+{# and the view applies those filters. `selected_role` / `selected_access` re-select the dropdowns. #}
 
 {% block title %} UHAMS - Manage Staff {% endblock %}
 
@@ -7,6 +10,7 @@
     <div class="actions"><a class="btn-link" href="{% url 'staffs:register' %}">Register new staff member</a>
        <a href="{% url 'staffs:dashboard' %}">Back to dashboard</a></div>
 
+    {# Search + filters. `query` is echoed back in the text box so it is not lost after filtering. #}
     <form method="get" class="filter-bar">
         <input type="text" name="q" value="{{ query }}" placeholder="Search name, title or department">
         <select name="role">
@@ -24,6 +28,7 @@
         <button type="submit">Filter</button>
     </form>
 
+    {# One row per staff member; "Manage" opens the per-person edit page. #}
     {% if staff_members %}
     <div class="table-wrap"><table class="data-table">
         <thead>

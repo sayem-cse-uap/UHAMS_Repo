@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
+{# patient-dashboard.html - the patient's home (patients.views.patient_dashboard). #}
+{# Variables: `appointments` (this patient's appointments, newest first) and `doctors` (all doctors, #}
+{# with their time blocks already loaded). #}
 
 {% block title %} UHAMS - Patient Dashboard {% endblock %}
 
@@ -6,6 +9,7 @@
     <h1>Hello, {{ logged_in_user.username }}</h1>
     <p class="lede">Track your appointments and request a visit with a doctor.</p>
 
+    {# --- Section 1: the patient's own appointments --- #}
     <h2>My appointments</h2>
     {% if appointments %}
     <div class="table-wrap"><table class="data-table">
@@ -17,15 +21,19 @@
             <tr>
                 <td>{{ appt.doctor.user.get_full_name|default:appt.doctor.user.username }} ({{ appt.doctor.specialization }})</td>
                 <td>
+                    {# Status chip colours follow the project palette: amber = waiting for the doctor, #}
+                    {# green = confirmed, grey = done. #}
                     {% if appt.status == 'PENDING_CONFIRMATION' %}<span class="badge">Waiting for doctor's confirmation</span>
                     {% elif appt.status == 'DONE' %}<span class="badge done">{{ appt.get_status_display }}</span>
                     {% else %}<span class="badge confirmed">{{ appt.get_status_display }}</span>{% endif %}
                 </td>
                 {% if appt.status == 'PENDING_CONFIRMATION' %}
+                    {# Not confirmed yet: the date shown is only the patient's REQUESTED date, and no time or room exists yet. #}
                     <td>Requested: {{ appt.date|date:"D, d M Y" }}</td>
                     <td>Not assigned yet</td>
                     <td>-</td>
                 {% else %}
+                    {# Confirmed (or done): the real date, the assigned time block and the room. #}
                     <td>{{ appt.date|date:"D, d M Y" }}</td>
                     <td>{% if appt.time_block %}{{ appt.time_block.start_time|time:"h:i A" }} - {{ appt.time_block.end_time|time:"h:i A" }}{% else %}Not assigned yet{% endif %}</td>
                     <td>{{ appt.room_number }}</td>
@@ -38,6 +46,7 @@
     <p>You have no appointments yet. Pick a doctor below to request one.</p>
     {% endif %}
 
+    {# --- Section 2: every doctor with their weekly availability and a button to request a visit --- #}
     <h2>Find a doctor</h2>
     {% if doctors %}
     <div class="table-wrap"><table class="data-table">
@@ -51,12 +60,14 @@
                 <td>{{ doc.specialization }}</td>
                 <td>{{ doc.consultationFee }}</td>
                 <td>
+                    {# timeblock_set.all is the doctor's weekly time blocks (pre-loaded by the view, so no extra queries). #}
                     {% for block in doc.timeblock_set.all %}
                         {{ block.get_day_display }} {{ block.start_time|time:"h:i A" }}-{{ block.end_time|time:"h:i A" }}<br>
                     {% empty %}
                         Schedule not set yet
                     {% endfor %}
                 </td>
+                {# Links to the booking form for this particular doctor (doc.id goes into the URL). #}
                 <td><a class="btn-link" href="{% url 'patients:book-appointment' doc.id %}">Request appointment</a></td>
             </tr>
         {% endfor %}

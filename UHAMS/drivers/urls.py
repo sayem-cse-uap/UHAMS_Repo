@@ -1,3 +1,4 @@
+"""URLs of the `drivers` app, mounted under /drivers/ in UHAMS/urls.py."""
 from django.urls import path
 from . import views
 

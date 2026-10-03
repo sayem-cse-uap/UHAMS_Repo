@@ -1,10 +1,19 @@
 {% extends 'base.html' %}
+{# settings.html - the Settings page shared by all roles (core.views.account_settings). #}
+{# It is made of THREE separate forms, each with a hidden input name="section" so the view knows #}
+{# which one was submitted: #}
+{#     section=account   -> name / email / phone #}
+{#     section=profile   -> the role-specific profile (blood group, fee, shift status, availability...) #}
+{#     section=password  -> change password #}
+{# Variables from the view: account_user, account_form, profile_form (None if no profile), #}
+{# profile_rows (read-only label/value pairs), password_form. #}
 
 {% block title %} UHAMS - Settings {% endblock %}
 
 {% block content %}
     <h1>Settings</h1>
 
+    {# --- 1. Account: read-only username + role, then the editable account form --- #}
     <section class="settings-section">
         <h2>Account</h2>
         <div class="table-wrap"><table class="data-table">
@@ -13,15 +22,18 @@
         </table></div>
         <form method="post">
             {% csrf_token %}
+            {# Tells the view this POST is the account form. #}
             <input type="hidden" name="section" value="account">
             {{ account_form.as_p }}
             <button type="submit">Save account details</button>
         </form>
     </section>
 
+    {# --- 2. Role profile (only if this account has a profile row) --- #}
     {% if profile_form %}
     <section class="settings-section">
         <h2>{{ account_user.get_role_display }} profile</h2>
+        {# Things the user may see but not edit (licence number, salary, access level, assigned ambulance...). #}
         {% if profile_rows %}
         <div class="table-wrap"><table class="data-table">
             {% for label, value in profile_rows %}
@@ -31,10 +43,12 @@
         {% endif %}
         <form method="post">
             {% csrf_token %}
+            {# Tells the view this POST is the profile form. #}
             <input type="hidden" name="section" value="profile">
             {{ profile_form.as_p }}
             <button type="submit">Save profile</button>
         </form>
+        {# Role-specific shortcuts and hints below the profile form. #}
         {% if account_user.role == 'DOCTOR' %}
         <div class="actions"><a class="btn-link" href="{% url 'doctors:schedule' %}">Manage my schedule</a></div>
         {% elif account_user.role == 'DRIVER' %}
@@ -47,14 +61,17 @@
     {% else %}
     <section class="settings-section">
         <h2>{{ account_user.get_role_display }} profile</h2>
+        {# The account exists but has no profile row yet, so there is nothing to edit. #}
         <p>No {{ account_user.get_role_display|lower }} profile is attached to this account yet, so there is nothing to edit here.</p>
     </section>
     {% endif %}
 
     <section class="settings-section">
+        {# --- 3. Change password (asks for the current password first) --- #}
         <h2>Change password</h2>
         <form method="post">
             {% csrf_token %}
+            {# Tells the view this POST is the password form. #}
             <input type="hidden" name="section" value="password">
             {{ password_form.as_p }}
             <button type="submit">Change password</button>

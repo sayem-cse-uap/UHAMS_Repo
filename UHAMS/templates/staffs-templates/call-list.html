@@ -1,9 +1,12 @@
 {% extends 'base.html' %}
+{# call-list.html - the list of emergency calls (staffs.views.call_list). #}
+{# Variables: calls, selected_status, status_choices, pending_count, free_ambulances. #}
 
 {% block title %} UHAMS - Emergency Calls {% endblock %}
 
 {% block content %}
     <h1>Emergency calls</h1>
+    {# Two tiles. The "Pending calls" tile turns red (class "urgent") when any call is waiting for an ambulance. #}
     <div class="stats">
         <div class="stat {% if pending_count %}urgent{% endif %}"><strong>{{ pending_count }}</strong><span>Pending calls</span></div>
         <div class="stat"><strong>{{ free_ambulances }}</strong><span>Ambulances free to dispatch</span></div>
@@ -13,6 +16,7 @@
         <a href="{% url 'staffs:dashboard' %}">Back to dashboard</a>
     </div>
 
+    {# Filter by status (GET form, ?status=...). #}
     <form method="get" class="filter-bar">
         <select name="status">
             <option value="" {% if not selected_status %}selected{% endif %}>All calls</option>
@@ -32,6 +36,7 @@
                 <td>{{ call.created_at|date:"d M Y H:i" }}</td>
                 <td>{{ call.location }}</td>
                 <td>
+                    {# Chip colours: red = pending (needs action), green = dispatched, grey = completed/cancelled. #}
                     {% if call.status == 'pending' %}<span class="badge alert">Pending</span>
                     {% elif call.status == 'dispatched' %}<span class="badge confirmed">Dispatched</span>
                     {% else %}<span class="badge done">{{ call.get_status_display }}</span>{% endif %}

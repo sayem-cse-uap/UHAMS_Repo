@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{# ambulance-list.html - the fleet overview for staff (ambulances.views.ambulance_list). #}
+{# Variables: ambulances, query, selected_status, status_choices, total_count, available_count. #}
 
 {% block title %} UHAMS - Ambulances {% endblock %}
 
@@ -6,6 +8,7 @@
     <h1>Ambulances</h1>
     <p class="lede">The fleet and who is driving each vehicle.</p>
 
+    {# Two overall counts (they ignore the search/filter below). #}
     <div class="stats">
         <div class="stat"><strong>{{ total_count }}</strong><span>Total</span></div>
         <div class="stat"><strong>{{ available_count }}</strong><span>Available</span></div>
@@ -15,6 +18,7 @@
         <a class="btn-link" href="{% url 'ambulances:create' %}">Add ambulance</a>
     </div>
 
+    {# Search by ID, plate, model or driver username, and/or filter by status. "Reset" clears both. #}
     <form method="GET" class="filter-bar">
         <input type="text" name="q" value="{{ query }}" placeholder="Search ID, plate, model or driver" aria-label="Search ambulances">
         <select name="status" aria-label="Filter by status">
@@ -37,6 +41,7 @@
                 <td><a href="{% url 'ambulances:detail' ambulance.pk %}"><strong>{{ ambulance.ambulance_id }}</strong></a></td>
                 <td>{{ ambulance.registration_number }}</td>
                 <td>{{ ambulance.get_vehicle_type_display }}</td>
+                {# Status chip: green = Available, amber = On Trip, grey = Maintenance/Offline. #}
                 <td><span class="badge {% if ambulance.status == 'AVAILABLE' %}confirmed{% elif ambulance.status != 'ON_TRIP' %}done{% endif %}">{{ ambulance.get_status_display }}</span></td>
                 <td>{% if ambulance.driver %}{{ ambulance.driver.user.username }}{% else %}Unassigned{% endif %}</td>
                 <td>
@@ -44,6 +49,7 @@
                     <a class="btn-link secondary" href="{% url 'ambulances:delete' ambulance.pk %}">Delete</a>
                 </td>
             </tr>
+            {# `{% empty %}` runs when the loop had nothing to show. #}
             {% empty %}
             <tr><td colspan="6">No ambulances found. Try a different search or filter.</td></tr>
             {% endfor %}

@@ -1,10 +1,14 @@
 {% extends 'base.html' %}
+{# register-staff.html - managers create a staff account (staffs.views.register_staff). #}
+{# Form fields: login details, job title/role/department and the access level the new person gets #}
+{# (an administrator can also choose "Administrator"; a plain manager cannot). #}
 
 {% block title %} Staff Registration {% endblock %}
 
 {% block content %}
     <h1> Staff Registration Page </h1>
     <p><a href="{% url 'staffs:member-list' %}">&larr; Back to Manage Staff</a></p>
+    {# One submit creates the User and the StaffProfile together. #}
     <form method="POST">
         {% csrf_token %}
         {{ form.as_p }}

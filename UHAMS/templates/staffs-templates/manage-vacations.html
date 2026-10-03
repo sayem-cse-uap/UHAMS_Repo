@@ -1,4 +1,8 @@
 {% extends 'base.html' %}
+{# manage-vacations.html - the manager's vacation queue (staffs.views.manage_vacations). #}
+{# The view adds two extra attributes to each record before rendering: #}
+{#     v.can_review  - True if the signed-in manager may approve/reject it #}
+{#     v.review_note - otherwise, the reason why not (e.g. "You cannot review your own vacation request.") #}
 
 {% block title %} UHAMS - Vacation Requests {% endblock %}
 
@@ -6,6 +10,7 @@
     <h1>Vacation Requests</h1>
     <p><a href="{% url 'staffs:member-list' %}">&larr; Manage Staff</a></p>
 
+    {# Status filter. The default (set in the view) is "Pending", i.e. the open queue. #}
     <form method="get" class="filter-bar">
         <select name="status">
             <option value="" {% if not selected_status %}selected{% endif %}>All</option>
@@ -33,6 +38,7 @@
                     {% if v.reviewed_by %}<br><small>by {{ v.reviewed_by.user.username }}</small>{% endif %}
                 </td>
                 <td>
+                    {# Approve / Reject: ONE form, and the clicked button's name/value ("decision" = approve|reject) tells the view the choice. #}
                     {% if v.can_review %}
                     <form method="post">
                         {% csrf_token %}

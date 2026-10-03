@@ -1,13 +1,18 @@
 {% extends 'base.html' %}
+{# my-vacations.html - a staff member's own vacations (staffs.views.my_vacations). #}
+{# Two forms on one page, told apart by a hidden name="action": "request" (new request) and #}
+{# "cancel" (withdraw a request that is still pending). #}
 
 {% block title %} UHAMS - My Vacations {% endblock %}
 
 {% block content %}
     <h1>My Vacations</h1>
+    {# Shown when an APPROVED vacation covers today. #}
     {% if on_leave %}<p><span class="badge confirmed">You are on approved leave today</span></p>{% endif %}
     <p><a href="{% url 'staffs:dashboard' %}">&larr; Dashboard</a></p>
 
     <section class="settings-section">
+        {# --- Ask for time off. The request starts as "Pending" until a manager decides. --- #}
         <h2>Request time off</h2>
         <form method="post">
             {% csrf_token %}
@@ -17,6 +22,7 @@
         </form>
     </section>
 
+    {# --- History with status chips (amber pending, green approved, grey rejected) --- #}
     <h2>My requests</h2>
     {% if vacations %}
     <div class="table-wrap"><table class="data-table">
@@ -37,6 +43,7 @@
                     {% if v.status == 'pending' %}
                     <form method="post">
                         {% csrf_token %}
+                        {# Only pending requests can be cancelled. #}
                         <input type="hidden" name="action" value="cancel">
                         <input type="hidden" name="vacation" value="{{ v.pk }}">
                         <button type="submit">Cancel request</button>

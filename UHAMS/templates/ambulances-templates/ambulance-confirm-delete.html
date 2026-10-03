@@ -1,10 +1,13 @@
 {% extends 'base.html' %}
+{# ambulance-confirm-delete.html - "Are you sure?" page (ambulances.views.delete_ambulance). #}
+{# Opening the page (GET) deletes nothing; only the POST button below does. That prevents accidental deletes. #}
 
 {% block title %} UHAMS - Delete Ambulance {% endblock %}
 
 {% block content %}
     <h1>Delete ambulance</h1>
     <p>Are you sure you want to delete ambulance <strong>{{ ambulance.ambulance_id }}</strong> ({{ ambulance.registration_number }})?</p>
+    {# Warn that the assigned driver will be left without an ambulance. #}
     {% if ambulance.driver %}
     <p>Its assigned driver ({{ ambulance.driver.user.username }}) will be left without an ambulance.</p>
     {% endif %}

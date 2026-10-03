@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{# call-form.html - log a new emergency call (staffs.views.call_new). #}
+{# Submitting records the call AND immediately dispatches the first available ambulance that has a driver. #}
 
 {% block title %} UHAMS - New Emergency Call {% endblock %}
 
@@ -6,6 +8,7 @@
     <p><a href="{% url 'staffs:call-list' %}">&larr; All calls</a></p>
     <h1>Log emergency call</h1>
     <p>The first available ambulance that has a driver is dispatched automatically.</p>
+    {# Fields: location and an optional description. #}
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}

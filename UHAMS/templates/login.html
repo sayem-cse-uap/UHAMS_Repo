@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
+{# login.html - the sign-in page (core.views.loginView). #}
+{# Receives `form` (a LoginForm). {{ form.as_p }} renders each field wrapped in a <p>, together with #}
+{# its label and any validation errors (including the generic "Incorrect username or password"). #}
 
 {% block title %}Log in - HN-UHAMS{% endblock %}
 {% block body_class %}auth{% endblock %}
@@ -7,6 +10,8 @@
     <h1>Log in</h1>
     <p>Use your HN-UHAMS username and password.</p>
     <div class="card">
+        {# {% csrf_token %} is REQUIRED in every POST form: it adds a hidden one-time token that Django checks #}
+        {# to make sure the form was really submitted from this site (protects against CSRF attacks). #}
         <form method="post">
             {% csrf_token %}
             {{ form.as_p }}

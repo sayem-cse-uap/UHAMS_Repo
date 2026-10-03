@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
+{# doctor-dashboard.html - the doctor's home (doctors.views.doctor_dashboard). #}
+{# Variables: `pending_appointments` (requests waiting for this doctor) and #}
+{# `confirmed_appointments` (everything already handled). #}
 
 {% block title %} UHAMS - Doctor Dashboard {% endblock %}
 
@@ -6,6 +9,7 @@
     <h1>Hello, {{ logged_in_user.username }}</h1>
     <p class="lede">Review new appointment requests and see your confirmed visits.</p>
 
+    {# --- Requests the doctor still has to confirm. The button opens the confirm form. --- #}
     <h2>Pending appointment requests</h2>
     {% if pending_appointments %}
     <div class="table-wrap"><table class="data-table">
@@ -25,6 +29,7 @@
     <p>No pending requests.</p>
     {% endif %}
 
+    {# --- Appointments that already have a date, time block and room --- #}
     <h2>Confirmed appointments</h2>
     {% if confirmed_appointments %}
     <div class="table-wrap"><table class="data-table">

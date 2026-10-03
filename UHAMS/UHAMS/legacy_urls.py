@@ -1,12 +1,28 @@
 """
 Permanent (301) redirects from the pre-restructure URLs to the current ones,
 so existing bookmarks and links keep working. Safe to delete once no longer needed.
+
+Background: the URLs used to be wordy and inconsistent (e.g. "staffs/staff-dashboard/",
+"patients/patient-dashboard/"). They were later cleaned up to the short forms
+documented in UHAMS/urls.py. Rather than break every saved bookmark, each old
+path below simply answers "this moved permanently" and sends the browser to the
+new location.
 """
 from django.urls import path
 from django.views.generic import RedirectView
 
 
 def _go(old, new):
+    """Build one redirect rule.
+
+    old: the legacy URL path (may contain converters such as <int:pk>).
+    new: the *name* of the current URL, e.g. 'staffs:dashboard'.
+
+    RedirectView looks up `new` with reverse(), and because the old pattern
+    captured values like <int:pk>/<int:doctor_id>, those are passed on to the
+    new URL automatically. permanent=True makes it an HTTP 301, which tells
+    browsers and search engines to remember the new address.
+    """
     return path(old, RedirectView.as_view(pattern_name=new, permanent=True))
 
 

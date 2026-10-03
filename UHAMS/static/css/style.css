@@ -4,7 +4,22 @@
    and a strict status palette (amber = waiting, green = go, red = emergency,
    grey = finished) reused everywhere a state is shown.
    ========================================================================== */
+/* HOW TO READ THIS FILE
+   Everything is plain CSS with no build step. Sections, in order:
+     1. Reset & base ........ element defaults
+     2. App shell ........... the signed-in layout: fixed left sidebar + content area
+     3. Public shell ........ the signed-out top bar
+     4. Main content ........ headings, messages, panels, summary tiles
+     5. Buttons, forms, tables, status chips
+     6. Home / login / choice cards
+     7. Responsive rules .... collapse the sidebar on small screens
+   The HTML structure these rules style is defined in templates/base.html.
+
+   DESIGN TOKENS: colours, sizes and the font are stored once as CSS custom properties
+   (variables) here, and used everywhere as var(--name). To re-theme the whole site,
+   change the values below. */
 :root {
+    /* Palette: dark ink for the sidebar/headings, teal for actions and links */
     --ink: #12262b;
     --ink-soft: #1b3940;
     --ink-line: rgba(255, 255, 255, 0.12);
@@ -17,6 +32,8 @@
     --text: #1a2a2e;
     --muted: #5b6b70;
 
+    /* Status palette - each state has a text colour and a soft background:
+       amber = waiting/pending, ok (green) = confirmed/available, alert (red) = emergency, grey = finished */
     --amber: #8a5a07;
     --amber-bg: #fdf1d6;
     --ok: #1b6b45;
@@ -26,6 +43,7 @@
     --grey: #48575c;
     --grey-bg: #e6ebec;
 
+    /* Layout and shape tokens */
     --sidebar-w: 248px;
     --radius: 6px;
     --radius-lg: 10px;
@@ -35,6 +53,8 @@
 }
 
 /* ---------- Reset & base ---------- */
+/* Remove the browser's default margins/padding and make width include padding+border,
+   so sizes behave predictably. */
 * { padding: 0; margin: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 
@@ -55,6 +75,8 @@ hr { border: 0; height: 1px; background: var(--line); margin: 20px 0; }
 
 :focus-visible { outline: 3px solid rgba(10, 122, 120, 0.45); outline-offset: 2px; }
 
+/* Accessibility: the "Skip to content" link is parked off-screen (top: -48px) and slides
+   into view only when it receives keyboard focus. */
 .skip-link {
     position: absolute; left: 12px; top: -48px; z-index: 100;
     background: var(--surface); padding: 8px 14px; border-radius: var(--radius);
@@ -63,6 +85,7 @@ hr { border: 0; height: 1px; background: var(--line); margin: 20px 0; }
 .skip-link:focus { top: 12px; }
 
 /* ---------- App shell (signed in) ---------- */
+/* The sidebar is fixed to the left edge, full height, and sits above the page (z-index). */
 .sidebar {
     position: fixed; inset: 0 auto 0 0;
     width: var(--sidebar-w);
@@ -72,6 +95,7 @@ hr { border: 0; height: 1px; background: var(--line); margin: 20px 0; }
     z-index: 30;
 }
 
+/* Logo text in the sidebar (and reused in the mobile top bar / public bar). */
 .brand {
     display: block;
     padding: 22px 22px 18px;
@@ -85,10 +109,13 @@ hr { border: 0; height: 1px; background: var(--line); margin: 20px 0; }
     color: rgba(255, 255, 255, 0.6);
 }
 
+/* Menu list: it grows (flex: 1) to push the account box to the bottom, and scrolls if the menu is long. */
 .menu { list-style: none; flex: 1; overflow-y: auto; padding: 4px 12px 12px; }
 .menu li + li { margin-top: 2px; }
 .menu .menu-gap { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--ink-line); }
 
+/* Menu links. The transparent left border reserves space so the active item's coloured
+   border does not make the text jump. */
 .menu a {
     display: block;
     padding: 9px 12px;
@@ -105,6 +132,7 @@ hr { border: 0; height: 1px; background: var(--line); margin: 20px 0; }
     color: #fff;
 }
 
+/* Account box at the bottom of the sidebar: avatar, name/role, log-out button. */
 .account {
     padding: 14px 16px;
     border-top: 1px solid var(--ink-line);
@@ -126,9 +154,12 @@ hr { border: 0; height: 1px; background: var(--line); margin: 20px 0; }
 }
 .account a.logout:hover { background: var(--ink-soft); color: #fff; }
 
+/* Page area to the right of the sidebar. The margin only exists when signed in
+   (body has class "app"), leaving room for the 248px sidebar. */
 .content { min-height: 100vh; }
 .app .content { margin-left: var(--sidebar-w); }
 
+/* The mobile top bar is hidden on desktop; the responsive section at the bottom shows it. */
 .topbar { display: none; }
 
 /* ---------- Public shell (signed out) ---------- */
@@ -147,6 +178,7 @@ hr { border: 0; height: 1px; background: var(--line); margin: 20px 0; }
 
 /* ---------- Main content ---------- */
 main { max-width: 1120px; margin: 0 auto; padding: 32px 36px 64px; }
+/* Pages with body class "auth" (login, registration) use a narrow centred column. */
 .auth main { max-width: 480px; padding-top: 56px; }
 .auth main > h1 { text-align: left; }
 
@@ -164,6 +196,8 @@ main > p > a:only-child { font-weight: 500; }
 
 /* ---------- Messages ---------- */
 .messages { list-style: none; margin-bottom: 20px; }
+/* Flash messages. Django adds a class from the message level (success/info/warning/error);
+   the four rules below colour each level using the status palette. */
 .message {
     padding: 11px 16px; margin-bottom: 8px;
     border-radius: var(--radius); border: 1px solid var(--line);
@@ -189,6 +223,7 @@ main > p > a:only-child { font-weight: 500; }
 .settings-section form + form { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
 
 /* ---------- Summary tiles ---------- */
+/* Responsive grid: as many 150px+ columns as fit, sharing the width equally. */
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 20px 0 8px; }
 .stat {
     background: var(--surface); border: 1px solid var(--line);
@@ -196,6 +231,7 @@ main > p > a:only-child { font-weight: 500; }
 }
 .stat strong { display: block; font-size: 1.8rem; line-height: 1.15; font-variant-numeric: tabular-nums; color: var(--ink); }
 .stat span { color: var(--muted); font-size: 0.88rem; }
+/* Red variant used when something needs attention (e.g. pending emergency calls). */
 .stat.urgent { border-color: #f0b8b2; background: var(--alert-bg); }
 .stat.urgent strong { color: var(--alert); }
 
@@ -203,6 +239,8 @@ main > p > a:only-child { font-weight: 500; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 22px; }
 .actions p { margin: 0; }
 
+/* One look for every button-like control: real <button>s, submit inputs and links
+   styled as buttons (.btn-link). Teal by default. */
 button,
 input[type="submit"],
 .btn-link {
@@ -220,6 +258,7 @@ input[type="submit"],
 button:hover, input[type="submit"]:hover, .btn-link:hover { background: var(--teal-dark); border-color: var(--teal-dark); color: #fff; }
 button:active, .btn-link:active { transform: translateY(1px); }
 
+/* Variants: .secondary = outlined/light, .danger = red, .danger.outline = light red. */
 .btn-link.secondary, button.secondary {
     background: var(--surface); color: var(--teal-dark); border-color: var(--line);
 }
@@ -230,17 +269,21 @@ button.danger:hover, .btn-link.danger:hover { background: #8f1f15; border-color:
 button.danger.outline { background: var(--surface); color: var(--alert); border-color: #e3aaa4; }
 button.danger.outline:hover { background: var(--alert-bg); }
 
+/* Smaller buttons when they sit inside table rows. */
 td .btn-link, td button { padding: 5px 12px; font-size: 0.88rem; }
 
 .form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 6px; }
 
 /* ---------- Forms ---------- */
+/* Forms are vertical stacks. Django's {{ form.as_p }} wraps each field in a <p>, which is
+   why `form p` is styled as a label + input column. */
 form { display: flex; flex-direction: column; gap: 4px; max-width: 560px; }
 td form, .filter-bar { max-width: none; }
 
 form p { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 label { font-weight: 600; font-size: 0.9rem; }
 
+/* All text-like inputs share one style. */
 input[type="text"], input[type="email"], input[type="password"], input[type="number"],
 input[type="tel"], input[type="date"], input[type="time"], input[type="url"],
 input[type="datetime-local"], select, textarea {
@@ -257,20 +300,24 @@ input:focus, select:focus, textarea:focus {
     outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(10, 122, 120, 0.2);
 }
 input[type="checkbox"], input[type="radio"] { accent-color: var(--teal); width: 1.05rem; height: 1.05rem; }
+/* Checkboxes: put the box and its label on one line, box first. */
 form p:has(input[type="checkbox"]) { flex-direction: row; align-items: center; gap: 10px; }
 form p:has(input[type="checkbox"]) label { order: 2; font-weight: 500; }
 
+/* Django's help text and validation errors (rendered as <ul class="errorlist">). */
 .helptext, form p span.helptext { font-size: 0.82rem; color: var(--muted); font-weight: 400; }
 .errorlist { list-style: none; color: var(--alert); font-size: 0.86rem; font-weight: 500; margin: 2px 0; }
 input[aria-invalid="true"] { border-color: var(--alert); }
 
 .form-note { display: block; margin: 10px 0 0; color: var(--muted); font-size: 0.9rem; }
 
+/* Inline search/filter row used above tables (a GET form). */
 .filter-bar { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 18px; }
 .filter-bar input[type="text"] { width: min(320px, 100%); }
 .filter-bar select { width: auto; min-width: 170px; }
 
 /* ---------- Tables ---------- */
+/* .table-wrap lets a wide table scroll sideways on small screens instead of breaking the layout. */
 .table-wrap {
     overflow-x: auto;
     background: var(--surface);
@@ -300,6 +347,8 @@ input[aria-invalid="true"] { border-color: var(--alert); }
 .detail-list .k { flex: 0 0 170px; color: var(--muted); }
 
 /* ---------- Status chips ---------- */
+/* Small rounded status label with a coloured dot (::before). Default = amber (pending).
+   Modifiers: .confirmed (green), .done (grey), .alert (red). */
 .badge {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 2px 10px; border-radius: 999px;
@@ -332,6 +381,9 @@ input[aria-invalid="true"] { border-color: var(--alert); }
 .auth form { max-width: none; }
 
 /* ---------- Responsive ---------- */
+/* Tablet and phone: slide the sidebar off-screen (translateX(-100%)). When JavaScript adds
+   the class "nav-open" to <body> (static/js/main.js), it slides back in and the rest of the
+   page is dimmed with a huge box-shadow. The top bar with the hamburger button appears. */
 @media (max-width: 900px) {
     .sidebar { transform: translateX(-100%); transition: transform 0.2s ease; }
     body.nav-open .sidebar { transform: none; box-shadow: 0 0 0 100vmax rgba(10, 20, 24, 0.5); }
@@ -349,6 +401,7 @@ input[aria-invalid="true"] { border-color: var(--alert); }
     .detail-list .k { flex: none; }
 }
 
+/* Small phones: smaller headings and full-width form buttons. */
 @media (max-width: 560px) {
     h1 { font-size: 1.4rem; }
     .hero h1 { font-size: 1.7rem; }
@@ -357,6 +410,8 @@ input[aria-invalid="true"] { border-color: var(--alert); }
     .settings-section, .panel { padding: 16px; }
 }
 
+/* Respect the operating-system setting for people who are sensitive to motion:
+   turn off transitions and smooth scrolling. */
 @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; scroll-behavior: auto !important; }
 }

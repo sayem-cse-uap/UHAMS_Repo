@@ -1,3 +1,5 @@
+"""URLs of the `staffs` app, mounted under /staff/ in UHAMS/urls.py
+(so 'dashboard/' below is really /staff/dashboard/)."""
 from django.urls import path
 from . import views
 
@@ -8,6 +10,8 @@ urlpatterns = [
     path('register/', views.register_staff, name='register'),
 
     # Staff members (manager only)
+    # <int:pk> captures a number from the URL and passes it to the view as `pk`
+    # (the StaffProfile's primary key).
     path('members/', views.manage_staff_list, name='member-list'),
     path('members/<int:pk>/', views.manage_staff_detail, name='member-detail'),
 

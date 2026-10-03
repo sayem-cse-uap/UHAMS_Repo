@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
+{# doctor-schedule.html - the doctor's weekly schedule (doctors.views.doctor_schedule). #}
+{# Top: the existing time blocks. Below: the form to add another block (TimeBlockForm). #}
+{# Overlapping blocks on the same day are rejected by the form. #}
 
 {% block title %} UHAMS - My Schedule {% endblock %}
 
@@ -20,6 +23,7 @@
         </tbody>
     </table></div>
 
+    {# Form errors such as "This overlaps with an existing time block on that day." appear above the fields. #}
     <h2>Add a time block</h2>
     <form method="post">
         {% csrf_token %}

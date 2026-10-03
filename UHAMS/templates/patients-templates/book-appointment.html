@@ -1,4 +1,8 @@
 {% extends 'base.html' %}
+{# book-appointment.html - request an appointment (patients.views.book_appointment). #}
+{# Variables: `doctor`, `blocks` (the doctor's weekly schedule, for information) and `form` #}
+{# (AppointmentRequestForm: preferred date + reason). The patient does NOT choose a time: #}
+{# the doctor assigns one when confirming. #}
 
 {% block title %} UHAMS - Request Appointment {% endblock %}
 
@@ -9,6 +13,7 @@
         &mdash; {{ doctor.specialization }} (Fee: {{ doctor.consultationFee }})
     </p>
 
+    {# Shows when the doctor works so the patient can choose a sensible date. #}
     <h3>Doctor's weekly schedule</h3>
     <ul>
         {% for block in blocks %}
@@ -19,6 +24,7 @@
     </ul>
     <p>The doctor will confirm your request and assign you one of these time blocks.</p>
 
+    {# The submit creates an Appointment with status "Pending Confirmation". #}
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}

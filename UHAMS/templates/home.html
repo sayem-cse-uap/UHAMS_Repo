@@ -1,13 +1,17 @@
 {% extends 'base.html' %}
+{# home.html - the landing page at "/". Shows a personalised welcome (with a link to the user's own #}
+{# dashboard) when signed in, or a short product description with Log in / Create account buttons otherwise. #}
 
 {% block title %}HN-UHAMS{% endblock %}
 
 {% block content %}
     <div class="hero">
+        {# Signed in: greet by username and offer a button to the dashboard that matches the role. #}
         {% if logged_in_user %}
         <h1>Welcome back, {{ logged_in_user.username }}</h1>
         <p>Pick up where you left off.</p>
         <div class="actions" style="margin-top:20px">
+            {# Only ONE of these four links is shown, depending on the account type. #}
             {% if logged_in_user.role == 'PATIENT' %}<a class="btn-link" href="{% url 'patients:dashboard' %}">Go to my dashboard</a>
             {% elif logged_in_user.role == 'DOCTOR' %}<a class="btn-link" href="{% url 'doctors:dashboard' %}">Go to my dashboard</a>
             {% elif logged_in_user.role == 'DRIVER' %}<a class="btn-link" href="{% url 'drivers:dashboard' %}">Go to my dashboard</a>
@@ -15,6 +19,7 @@
             <a class="btn-link secondary" href="{% url 'core:settings' %}">Settings</a>
         </div>
         {% else %}
+        {# Signed out: describe the product and offer the two entry points. #}
         <h1>Appointments, staff and ambulance dispatch in one place</h1>
         <p>Patients book visits with doctors, doctors confirm and schedule them, and staff coordinate emergency calls and ambulances.</p>
         <div class="actions" style="margin-top:20px">

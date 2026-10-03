@@ -1,4 +1,8 @@
 {% extends 'base.html' %}
+{# register.html - "Create an account" chooser (core.views.register_new_user). #}
+{# Each account type has its own registration page in its own app. Staff accounts are different: #}
+{# they can only be created by a manager, so that option is shown only when `is_staff_manager` is true #}
+{# (from the context processor); everyone else gets a hint to ask a manager. #}
 
 {% block title %}Create an account - HN-UHAMS{% endblock %}
 {% block body_class %}auth{% endblock %}
@@ -6,14 +10,17 @@
 {% block content %}
     <h1>Create an account</h1>
     <p>Choose the kind of account you need.</p>
+    {# One card-style link per account type. #}
     <ul class="choice-list">
         <li><a href="{% url 'patients:register' %}">Patient<span>Book appointments and follow your visits.</span></a></li>
         <li><a href="{% url 'doctors:register' %}">Doctor<span>Manage your schedule and confirm requests.</span></a></li>
         <li><a href="{% url 'drivers:register' %}">Ambulance driver<span>See your ambulance and emergency dispatches.</span></a></li>
+        {# Only managers/admins see the staff option. #}
         {% if is_staff_manager %}
         <li><a href="{% url 'staffs:register' %}">Staff member<span>Add a new member to the hospital staff.</span></a></li>
         {% endif %}
     </ul>
+    {# Everybody else: explain how staff accounts are created. #}
     {% if not is_staff_manager %}
     <p class="form-note">Staff accounts are created by a manager. Ask one to register you.</p>
     {% endif %}

@@ -1,4 +1,10 @@
 {% extends 'base.html' %}
+{# call-detail.html - one emergency call (staffs.views.call_detail). #}
+{# What is shown depends on the call's status: #}
+{#     pending     -> a "Dispatch an ambulance" form and a "Cancel call" button #}
+{#     dispatched  -> "Mark completed" and "Cancel call" buttons #}
+{#     completed / cancelled -> read-only #}
+{# Each button is its own tiny form with a hidden name="action" (dispatch / complete / cancel). #}
 
 {% block title %} UHAMS - Emergency Call {% endblock %}
 
@@ -6,6 +12,7 @@
     <p><a href="{% url 'staffs:call-list' %}">&larr; All calls</a></p>
     <h1>Emergency call: {{ call.location }}</h1>
 
+    {# --- Facts about the call: status, time, details, who handled it, which ambulance and driver --- #}
     <section class="settings-section">
         <div class="table-wrap"><table class="data-table">
             <tr><th>Status</th><td>{% if call.status == 'pending' %}<span class="badge alert">Pending</span>{% elif call.status == 'dispatched' %}<span class="badge confirmed">Dispatched</span>{% else %}<span class="badge done">{{ call.get_status_display }}</span>{% endif %}</td></tr>
@@ -26,7 +33,9 @@
 
     {% if call.status == 'pending' %}
     <section class="settings-section">
+        {# Only offered while the call is pending. Leaving the dropdown on "first available" lets the system choose. #}
         <h2>Dispatch an ambulance</h2>
+        {# `free_ambulances` is how many ambulances are available AND have a driver; if none, dispatching is impossible. #}
         {% if free_ambulances %}
         <form method="post">
             {% csrf_token %}
@@ -42,6 +51,7 @@
 
     {% if call.status == 'dispatched' or call.status == 'pending' %}
     <section class="settings-section">
+        {# --- Finish the call. Completing or cancelling a dispatched call also frees its ambulance. --- #}
         <h2>Close this call</h2>
         <div class="form-actions" style="align-items:flex-start">
         {% if call.status == 'dispatched' %}

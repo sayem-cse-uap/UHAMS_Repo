@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{# register-patient.html - public patient sign-up (patients.views.register_patient). #}
+{# The `auth` body class gives the page the narrow, centred "card" look from style.css. #}
 
 {% block title %} Patient Registration {% endblock %}
 {% block body_class %}auth{% endblock %}
@@ -6,6 +8,7 @@
 {% block content %}
     <h1>Patient Registration</h1>
     <div class="card">
+        {# {{ form.as_p }} renders all fields of PatientRegistrationForm. #}
         <form method="POST">
             {% csrf_token %}
             {{ form.as_p }}

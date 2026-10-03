@@ -1,9 +1,13 @@
 {% extends 'base.html' %}
+{# ambulance-form.html - used for BOTH "Add ambulance" and "Edit ambulance". #}
+{# The view supplies `page_title` and `submit_label` so the same page reads correctly in both cases. #}
+{# The driver dropdown only lists drivers who do not yet have an ambulance (plus the current one when editing). #}
 
 {% block title %} UHAMS - {{ page_title }} {% endblock %}
 
 {% block content %}
     <h1>{{ page_title }}</h1>
+    {# All the ambulance fields are rendered by {{ form.as_p }}. #}
     <form method="POST">
         {% csrf_token %}
         {{ form.as_p }}

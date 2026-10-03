@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{# register-doctor.html - public doctor sign-up (doctors.views.register_doctor). #}
 
 {% block title %} Doctor Registration {% endblock %}
 {% block body_class %}auth{% endblock %}
@@ -6,6 +7,7 @@
 {% block content %}
     <h1>Doctor Registration</h1>
     <div class="card">
+        {# {{ form.as_p }} renders all fields of DoctorRegistrationForm. #}
         <form method="POST">
             {% csrf_token %}
             {{ form.as_p }}
