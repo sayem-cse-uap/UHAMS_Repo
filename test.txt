@@ -10,3 +10,6 @@ Samania -
 superuser name: sayem
 email: notreal@gmail.com
 password: 123
+
+all patient and drivers password - 123
+all doctors and staff password - abc
