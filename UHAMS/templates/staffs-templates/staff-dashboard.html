@@ -3,49 +3,83 @@
 {% block title %} UHAMS - Staff Dashboard {% endblock %}
 
 {% block content %}
-    <h1>Staff Dashboard Page, {{ logged_in_user.username }}</h1>
-    <p> Welecome to UHAMS, we are still in development though.. but welcome anyways.</p>
-<!--    <a href="{% url 'register_staff' %}">Register Staff</a>-->
+    <h1>Staff Dashboard, {{ logged_in_user.get_full_name|default:logged_in_user.username }}</h1>
+    {% if my_profile %}
+    <p>{{ my_profile.title }} &middot; {{ my_profile.department }} &middot; {{ my_profile.get_role_display }}
+        &middot; {% if my_profile.availability_status %}<span class="badge confirmed">Available</span>{% else %}<span class="badge">Unavailable</span>{% endif %}
+        &middot; <a href="{% url 'settings' %}">Settings</a></p>
+    {% else %}
+    <p>No staff profile is attached to this account yet. Ask an administrator to create one.</p>
+    {% endif %}
     <a href="{% url 'logout' %}">Logout</a>
-<h1> All Appointments </h1>
-<ul>
-    <hr>
-        {% for item  in appointments %}
-        <li>{{ item.doctor.user.username}} </li>
-        <li>Patient: {{item.patient.user.username}}</li>
-        <li>Room: {{item.room_number}}</li>
-<hr>
+
+    <h2>All Appointments</h2>
+    {% if appointments %}
+    <table class="data-table">
+        <thead><tr><th>Doctor</th><th>Patient</th><th>Date</th><th>Status</th><th>Room</th></tr></thead>
+        <tbody>
+        {% for item in appointments %}
+            <tr>
+                <td>{{ item.doctor.user.username }}</td>
+                <td>{{ item.patient.user.username }}</td>
+                <td>{{ item.date|date:"D, d M Y" }}</td>
+                <td>{{ item.get_status_display }}</td>
+                <td>{{ item.room_number }}</td>
+            </tr>
         {% endfor %}
-    </ul>
+        </tbody>
+    </table>
+    {% else %}<p>No appointments yet.</p>{% endif %}
 
-<h1> All Doctor Profile </h1>
-<ul>
-    <hr>
-        {% for item  in doctors %}
-        <li>{{ item.user.username}} </li>
+    <h2>Doctors</h2>
+    {% if doctors %}
+    <table class="data-table">
+        <thead><tr><th>Username</th><th>Specialization</th></tr></thead>
+        <tbody>{% for item in doctors %}<tr><td>{{ item.user.username }}</td><td>{{ item.specialization }}</td></tr>{% endfor %}</tbody>
+    </table>
+    {% else %}<p>No doctors yet.</p>{% endif %}
 
-<hr>
+    <h2>Patients</h2>
+    {% if patients %}
+    <table class="data-table">
+        <thead><tr><th>Username</th><th>Blood group</th><th>Assigned staff</th></tr></thead>
+        <tbody>
+        {% for item in patients %}
+            <tr><td>{{ item.user.username }}</td><td>{{ item.bloodGroup }}</td><td>{{ item.assigned_staff.user.username|default:"-" }}</td></tr>
         {% endfor %}
-    </ul>
-<h1>  All Patient  Profile </h1>
-<ul>
-    <hr>
-        {% for item  in patients %}
-        <li>{{ item.user.username}} </li>
+        </tbody>
+    </table>
+    {% else %}<p>No patients yet.</p>{% endif %}
 
-<hr>
-     {% endfor %}
-</ul>
+    <h2>Staff</h2>
+    {% if staffs %}
+    <table class="data-table">
+        <thead><tr><th>Username</th><th>Title</th><th>Role</th><th>Department</th><th>Available</th></tr></thead>
+        <tbody>
+        {% for item in staffs %}
+            <tr>
+                <td>{{ item.user.username }}</td><td>{{ item.title }}</td><td>{{ item.get_role_display }}</td>
+                <td>{{ item.department }}</td><td>{{ item.availability_status|yesno:"Yes,No" }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}<p>No staff profiles yet.</p>{% endif %}
 
-<h1>  All Staff  Profile </h1>
-<ul>
-    <hr>
-        {% for item  in staffs %}
-        <li>{{ item.user.username}} </li>
-
-<hr>
-     {% endfor %}
-</ul>
-
-
+    <h2>Recent Ambulance Calls</h2>
+    {% if ambulance_calls %}
+    <table class="data-table">
+        <thead><tr><th>Location</th><th>Status</th><th>Ambulance</th><th>Handled by</th><th>Logged</th></tr></thead>
+        <tbody>
+        {% for call in ambulance_calls %}
+            <tr>
+                <td>{{ call.location }}</td><td>{{ call.get_status_display }}</td>
+                <td>{{ call.ambulance.ambulance_id|default:"-" }}</td>
+                <td>{{ call.handled_by.user.username|default:"-" }}</td>
+                <td>{{ call.created_at|date:"d M Y H:i" }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}<p>No ambulance calls logged.</p>{% endif %}
 {% endblock %}

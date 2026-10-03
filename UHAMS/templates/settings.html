@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %} UHAMS - Settings {% endblock %}
+
+{% block content %}
+    <h1>Settings</h1>
+
+    <section class="settings-section">
+        <h2>Account</h2>
+        <table class="data-table">
+            <tr><th>Username</th><td>{{ account_user.username }}</td></tr>
+            <tr><th>Account type</th><td>{{ account_user.get_role_display }}</td></tr>
+        </table>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="section" value="account">
+            {{ account_form.as_p }}
+            <button type="submit">Save account details</button>
+        </form>
+    </section>
+
+    {% if profile_form %}
+    <section class="settings-section">
+        <h2>{{ account_user.get_role_display }} profile</h2>
+        {% if profile_rows %}
+        <table class="data-table">
+            {% for label, value in profile_rows %}
+            <tr><th>{{ label }}</th><td>{{ value }}</td></tr>
+            {% endfor %}
+        </table>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="section" value="profile">
+            {{ profile_form.as_p }}
+            <button type="submit">Save profile</button>
+        </form>
+        {% if account_user.role == 'DOCTOR' %}
+        <p><a class="btn-link" href="{% url 'doctor-schedule' %}">Manage my schedule</a></p>
+        {% elif account_user.role == 'DRIVER' %}
+        <p><a class="btn-link" href="{% url 'my-ambulance' %}">Open my ambulance</a></p>
+        {% endif %}
+        {% if account_user.role == 'STAFF' %}
+        <p class="form-note">Title, department, role, salary and access level can only be changed by a manager.</p>
+        {% endif %}
+    </section>
+    {% else %}
+    <section class="settings-section">
+        <h2>{{ account_user.get_role_display }} profile</h2>
+        <p>No {{ account_user.get_role_display|lower }} profile is attached to this account yet, so there is nothing to edit here.</p>
+    </section>
+    {% endif %}
+
+    <section class="settings-section">
+        <h2>Change password</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="section" value="password">
+            {{ password_form.as_p }}
+            <button type="submit">Change password</button>
+        </form>
+    </section>
+{% endblock %}

@@ -23,17 +23,18 @@
                 <li><a href="{% url 'my-ambulance' %}">My Ambulance</a></li>
                 {% endif %}
                 {% if logged_in_user.role == 'STAFF' %}
+                <li><a href="{% url 'staff-dashboard' %}">Staff Dashboard</a></li>
                 <li><a href="{% url 'ambulance-list' %}">Ambulances</a></li>
                 {% endif %}
-                <li><a href="{% url 'staff-dashboard' %}">Staff Dashboard</a></li>
-                <li><a href="#">Analytics</a></li>
-                <li><a href="#">Settings</a></li>
+                {% if logged_in_user %}
+                <li><a href="{% url 'settings' %}">Settings</a></li>
+                {% endif %}
             </ul>
 
             <div class="user-profile">
             {% if logged_in_user %}
                 <img src="{% static 'images/horse-profile-pic.jpg' %}" width="20px">
-                <span class="user-name">{{ logged_in_user.username }}</span>
+                <a class="user-name" href="{% url 'settings' %}">{{ logged_in_user.username }}</a>
             {% endif %}
             </div>
         </nav>

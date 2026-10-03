@@ -82,3 +82,11 @@ class TimeBlockForm(forms.ModelForm):
             if overlap:
                 raise forms.ValidationError("This overlaps with an existing time block on that day.")
         return cleaned
+
+
+class DoctorSettingsForm(forms.ModelForm):
+    consultationFee = forms.IntegerField(min_value=0, label="Consultation fee")
+
+    class Meta:
+        model = DoctorProfile
+        fields = ['specialization', 'consultationFee']

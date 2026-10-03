@@ -7,6 +7,7 @@ class PatientProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     bloodGroup = models.CharField(max_length=100)
     emergencyContact = models.CharField(max_length=100)
+    assigned_staff = models.ForeignKey("staffs.StaffProfile", on_delete=models.SET_NULL, null=True, blank=True, related_name="patients")
 
     def bookAppointment(self):
         pass

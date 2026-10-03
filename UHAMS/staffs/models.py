@@ -1,6 +1,5 @@
 from decimal import Decimal, InvalidOperation
 
-from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models, transaction
@@ -16,8 +15,14 @@ class StaffProfile(models.Model):
         ("admin", "Administrator"),
         ("other", "Other"),
     ]
+    ACCESS_STAFF, ACCESS_MANAGER, ACCESS_ADMIN = "staff", "manager", "admin"
+    ACCESS_CHOICES = [
+        (ACCESS_STAFF, "Staff"),
+        (ACCESS_MANAGER, "Manager"),
+        (ACCESS_ADMIN, "Administrator"),
+    ]
     # access_level values that are allowed to change other staff members' data
-    MANAGER_LEVELS = {"admin", "manager"}
+    MANAGER_LEVELS = {ACCESS_MANAGER, ACCESS_ADMIN}
     EDITABLE_DETAILS = {"title", "department", "availability_status", "access_level"}
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -27,7 +32,7 @@ class StaffProfile(models.Model):
     availability_status = models.BooleanField(default=True)
     current_assignment = models.CharField(max_length=255, blank=True)
     department = models.CharField(max_length=255)
-    access_level = models.CharField(max_length=255)
+    access_level = models.CharField(max_length=20, choices=ACCESS_CHOICES, default=ACCESS_STAFF)
 
     class Meta:
         ordering = ["user__username"]
@@ -41,10 +46,14 @@ class StaffProfile(models.Model):
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
+    @property
+    def is_manager(self):
+        return (self.access_level or "").lower() in self.MANAGER_LEVELS
+
     @classmethod
     def _require_manager(cls, actor):
         """Only staff with a manager-level access_level may perform the action."""
-        if actor is None or actor.access_level.lower() not in cls.MANAGER_LEVELS:
+        if not isinstance(actor, cls) or not actor.is_manager:
             raise PermissionDenied("You do not have permission to perform this action.")
 
     # ------------------------------------------------------------------
@@ -74,10 +83,7 @@ class StaffProfile(models.Model):
     # ------------------------------------------------------------------
     @transaction.atomic
     def managePatient(self, patient, action="assign"):
-        """
-        Assign a patient to this staff member or release them.
-        Assumes the Patient model has a nullable `assigned_staff` FK to StaffProfile.
-        """
+        """Assign a patient to this staff member or release them (PatientProfile.assigned_staff)."""
         if action == "assign":
             if not self.availability_status:
                 raise ValidationError("This staff member is not available.")
@@ -111,8 +117,8 @@ class StaffProfile(models.Model):
             new_salary = Decimal(str(new_salary))
         except InvalidOperation:
             raise ValidationError("Salary must be a valid number.")
-        if new_salary < 0:
-            raise ValidationError("Salary cannot be negative.")
+        if not new_salary.is_finite() or new_salary < 0:
+            raise ValidationError("Salary must be a non-negative number.")
         self.salary = new_salary
         self.save(update_fields=["salary"])
         return self
@@ -122,6 +128,8 @@ class StaffProfile(models.Model):
         invalid = set(details) - self.EDITABLE_DETAILS
         if invalid:
             raise ValidationError(f"Cannot change: {', '.join(sorted(invalid))}")
+        if "access_level" in details and details["access_level"] not in dict(self.ACCESS_CHOICES):
+            raise ValidationError(f"Invalid access level: {details['access_level']}")
         for field, value in details.items():
             setattr(self, field, value)
         self.save(update_fields=list(details))
@@ -145,45 +153,60 @@ class StaffProfile(models.Model):
         return cls.listAllStaff().filter(availability_status=True)
 
     # ------------------------------------------------------------------
-    # Ambulances
+    # Ambulances (uses the ambulances / drivers apps)
     # ------------------------------------------------------------------
     @staticmethod
     def listAllAvailableAmbulances():
-        return Ambulance.objects.filter(status=Ambulance.AVAILABLE)
+        """Ambulances that are marked available AND have a driver."""
+        from ambulances.models import Ambulance
 
-    @classmethod
-    def listAllAvailableDrivers(cls):
-        return cls.listAllAvailableStaff().filter(role="driver")
+        return Ambulance.objects.filter(status=Ambulance.Status.AVAILABLE, driver__isnull=False)
+
+    @staticmethod
+    def listAllAvailableDrivers():
+        """Drivers who are not yet attached to an ambulance."""
+        from drivers.models import DriverProfile
+
+        return DriverProfile.objects.filter(ambulance__isnull=True).select_related("user")
 
     @transaction.atomic
-    def assignDriverToAmbulance(self, ambulance):
-        """Assign this staff member (must be an available driver) to an ambulance."""
-        if self.role != "driver":
-            raise ValidationError("Only staff with the driver role can be assigned.")
-        if not self.availability_status:
-            raise ValidationError("This driver is not available.")
-        ambulance.driver = self
-        ambulance.save(update_fields=["driver"])
+    def assignDriverToAmbulance(self, driver, ambulance):
+        """Attach a DriverProfile to an ambulance (one driver per ambulance)."""
+        if hasattr(driver, "ambulance") and driver.ambulance.pk != ambulance.pk:
+            raise ValidationError("This driver is already assigned to another ambulance.")
+        ambulance.driver = driver
+        ambulance.save()
         return ambulance
 
     @transaction.atomic
     def dispatchAmbulance(self, ambulance, call):
         """Send an ambulance (with its driver) to an emergency call."""
-        if ambulance.status != Ambulance.AVAILABLE:
-            raise ValidationError("Ambulance is not available.")
-        if ambulance.driver is None:
-            raise ValidationError("Ambulance has no driver assigned.")
-        ambulance.status = Ambulance.ON_CALL
-        ambulance.save(update_fields=["status"])
+        from ambulances.models import Ambulance
 
-        driver = ambulance.driver
-        driver.availability_status = False
-        driver.save(update_fields=["availability_status"])
+        if not ambulance.is_available:
+            raise ValidationError("Ambulance is not available or has no driver assigned.")
+        ambulance.status = Ambulance.Status.ON_TRIP
+        ambulance.save(update_fields=["status"])
 
         call.ambulance = ambulance
         call.handled_by = self
         call.status = AmbulanceCall.DISPATCHED
         call.save(update_fields=["ambulance", "handled_by", "status"])
+        return call
+
+    @transaction.atomic
+    def completeAmbulanceCall(self, call):
+        """Close a dispatched call and free its ambulance."""
+        from ambulances.models import Ambulance
+
+        if call.status != AmbulanceCall.DISPATCHED:
+            raise ValidationError("Only dispatched calls can be completed.")
+        ambulance = call.ambulance
+        if ambulance is not None and ambulance.status == Ambulance.Status.ON_TRIP:
+            ambulance.status = Ambulance.Status.AVAILABLE
+            ambulance.save(update_fields=["status"])
+        call.status = AmbulanceCall.COMPLETED
+        call.save(update_fields=["status"])
         return call
 
     @transaction.atomic
@@ -195,12 +218,7 @@ class StaffProfile(models.Model):
         call = AmbulanceCall.objects.create(
             location=location, description=description, handled_by=self
         )
-        ambulance = (
-            self.listAllAvailableAmbulances()
-            .filter(driver__isnull=False, driver__availability_status=True)
-            .select_for_update()
-            .first()
-        )
+        ambulance = self.listAllAvailableAmbulances().select_for_update().first()
         if ambulance is None:
             return call
         return self.dispatchAmbulance(ambulance, call)
@@ -233,29 +251,11 @@ class VacationRecord(models.Model):
         ordering = ["-start_date"]
 
     def clean(self):
-        if self.end_date < self.start_date:
+        if self.start_date and self.end_date and self.end_date < self.start_date:
             raise ValidationError("End date cannot be before start date.")
 
     def __str__(self):
         return f"{self.staff} on leave {self.start_date} to {self.end_date}"
-
-
-class Ambulance(models.Model):
-    AVAILABLE, ON_CALL, MAINTENANCE = "available", "on_call", "maintenance"
-    STATUS_CHOICES = [
-        (AVAILABLE, "Available"),
-        (ON_CALL, "On call"),
-        (MAINTENANCE, "Under maintenance"),
-    ]
-
-    plate_number = models.CharField(max_length=20, unique=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=AVAILABLE)
-    driver = models.ForeignKey(
-        StaffProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name="ambulances"
-    )
-
-    def __str__(self):
-        return f"Ambulance {self.plate_number} ({self.get_status_display()})"
 
 
 class AmbulanceCall(models.Model):
@@ -269,7 +269,10 @@ class AmbulanceCall(models.Model):
     location = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=PENDING)
-    ambulance = models.ForeignKey(Ambulance, on_delete=models.SET_NULL, null=True, blank=True)
+    # Points at the real ambulance fleet in the `ambulances` app.
+    ambulance = models.ForeignKey(
+        "ambulances.Ambulance", on_delete=models.SET_NULL, null=True, blank=True, related_name="calls"
+    )
     handled_by = models.ForeignKey(
         StaffProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name="handled_calls"
     )

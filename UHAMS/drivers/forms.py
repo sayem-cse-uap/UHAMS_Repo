@@ -55,3 +55,10 @@ class DriverRegistrationForm(forms.Form):
                 assigned_ambulance_ID=self.cleaned_data['assigned_ambulance_ID']
             )
             return driver_profile
+
+
+class DriverSettingsForm(forms.ModelForm):
+    class Meta:
+        model = DriverProfile
+        fields = ['shift_status']
+        labels = {'shift_status': 'Shift status'}

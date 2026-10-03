@@ -53,3 +53,10 @@ class PatientRegistrationForm(forms.Form):
                 emergencyContact=self.cleaned_data['emergencyContact'],
             )
             return patient_profile
+
+
+class PatientSettingsForm(forms.ModelForm):
+    class Meta:
+        model = PatientProfile
+        fields = ['bloodGroup', 'emergencyContact']
+        labels = {'bloodGroup': 'Blood group', 'emergencyContact': 'Emergency contact'}
