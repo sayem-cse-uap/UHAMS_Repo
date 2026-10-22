@@ -6,10 +6,6 @@ Registered in settings.TEMPLATES -> OPTIONS -> context_processors. Django calls
 returned dict into that page's context. That is why base.html can simply write
 {% if logged_in_user %} without any view having to pass it in.
 """
-from functools import wraps
-
-from django.shortcuts import redirect
-
 from .models import User
 
 
@@ -42,19 +38,3 @@ def load_logged_in_user(request):
 
     return {'logged_in_user': None, 'is_staff_manager': False}
 
-
-def custom_login_required(view_func):
-    """Minimal "must be logged in" decorator (no role check).
-
-    Only checks that the session has a 'user_id'; the doctors, patients and
-    drivers views use it and then do their own role/profile checks inside the
-    view. (core.decorators.role_required is the stricter, newer alternative.)
-    It lives in this module for historical reasons, which is why it is imported
-    as `from core.context_processors import custom_login_required` elsewhere.
-    """
-    @wraps(view_func)
-    def wrapper(request, *args, **kwargs):
-        if 'user_id' not in request.session:
-            return redirect('core:login')
-        return view_func(request, *args, **kwargs)
-    return wrapper

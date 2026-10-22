@@ -13,7 +13,7 @@ from django.contrib import messages
 
 from appointments.forms import AppointmentRequestForm
 from appointments.models import Appointment
-from core.context_processors import custom_login_required
+from core.decorators import role_required
 from core.models import User
 from doctors.models import DoctorProfile
 from .forms import PatientRegistrationForm
@@ -33,33 +33,13 @@ def register_patient(request):
     return render(request, 'patients-templates/register-patient.html', {'form': form})
 
 
-def _current_user(request):
-    """The logged-in User (looked up from the session's 'user_id'), or None."""
-    return User.objects.filter(id=request.session.get('user_id')).first()
-
-
-def _role_redirect(user):
-    """The login view sends every role to the patient dashboard, so send others where they belong."""
-    # (Login now sends each role to its own dashboard - core.views.DASHBOARD_BY_ROLE -
-    # but this guard is still useful if a doctor/staff/driver types the patient URL by hand.)
-    target = {
-        User.Role.DOCTOR: 'doctors:dashboard',
-        User.Role.STAFF: 'staffs:dashboard',
-        User.Role.DRIVER: 'drivers:dashboard',
-    }.get(user.role)
-    # PATIENT is not in the dictionary, so .get() returns None -> no redirect.
-    return redirect(target) if target else None
-
-
-@custom_login_required
+@role_required(User.Role.PATIENT)
 def patient_dashboard(request):
-    """The patient's home page: their appointments, plus the doctors they can book."""
-    user = _current_user(request)
-    if user is None:
-        return redirect('core:login')
-    other = _role_redirect(user)
-    if other:
-        return other
+    """The patient's home page: their appointments, plus the doctors they can book.
+
+    role_required only lets PATIENT accounts in (anyone else is sent to the home
+    page with an error) and puts the user on request.uhams_user."""
+    user = request.uhams_user
 
     patient = PatientProfile.objects.filter(user=user).first()
     # prefetch_related('timeblock_set') loads every doctor's schedule in ONE extra
@@ -76,12 +56,12 @@ def patient_dashboard(request):
     })
 
 
-@custom_login_required
+@role_required(User.Role.PATIENT)
 def book_appointment(request, doctor_id):
     """Request an appointment with one doctor (identified by `doctor_id` in the URL)."""
-    user = _current_user(request)
-    # Only someone who has a PatientProfile may book; everyone else is turned away.
-    patient = PatientProfile.objects.filter(user=user).first() if user else None
+    user = request.uhams_user
+    # A PATIENT account should have a PatientProfile; if it somehow does not, turn it away.
+    patient = PatientProfile.objects.filter(user=user).first()
     if patient is None:
         messages.error(request, "Only patients can request appointments.")
         return redirect('patients:dashboard')

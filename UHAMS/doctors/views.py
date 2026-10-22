@@ -3,8 +3,9 @@ doctors.views - what a doctor can do: register, see appointment requests, manage
 weekly schedule of time blocks, and confirm requests by assigning a time block + date.
 
 All the doctor pages share one pattern: check the user is logged in
-(@custom_login_required), then look up their DoctorProfile with `_current_doctor`;
-if there is none, the account is not a doctor and is sent away.
+(@role_required(User.Role.DOCTOR), which only admits DOCTOR accounts), then look up
+their DoctorProfile with `_current_doctor`; if there is none, the account is
+incomplete and is sent to the home page.
 """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -12,7 +13,7 @@ from django.utils import timezone
 
 from appointments.forms import AppointmentConfirmForm
 from appointments.models import Appointment
-from core.context_processors import custom_login_required
+from core.decorators import role_required
 from core.models import User
 from .forms import DoctorRegistrationForm, TimeBlockForm
 from .models import DoctorProfile
@@ -32,20 +33,17 @@ def register_doctor(request):
 
 
 def _current_doctor(request):
-    """Return the DoctorProfile of the logged-in (session) user, or None."""
-    user = User.objects.filter(id=request.session.get('user_id')).first()
-    if user is None:
-        return None
-    return DoctorProfile.objects.filter(user=user).first()
+    """Return the DoctorProfile of the logged-in user (set by role_required), or None."""
+    return DoctorProfile.objects.filter(user=request.uhams_user).first()
 
 
-@custom_login_required
+@role_required(User.Role.DOCTOR)
 def doctor_dashboard(request):
     """Two lists: requests waiting for the doctor, and everything already handled."""
     doctor = _current_doctor(request)
     if doctor is None:
-        messages.error(request, "Only doctors can open the doctor dashboard.")
-        return redirect('patients:dashboard')
+        messages.error(request, "Your account has no doctor profile.")
+        return redirect('core:home')
 
     # Only THIS doctor's appointments.
     base = Appointment.objects.filter(doctor=doctor).select_related('patient__user', 'time_block')
@@ -60,13 +58,13 @@ def doctor_dashboard(request):
     })
 
 
-@custom_login_required
+@role_required(User.Role.DOCTOR)
 def doctor_schedule(request):
     """View the weekly schedule and add a new time block."""
     doctor = _current_doctor(request)
     if doctor is None:
-        messages.error(request, "Only doctors can manage a schedule.")
-        return redirect('patients:dashboard')
+        messages.error(request, "Your account has no doctor profile.")
+        return redirect('core:home')
 
     if request.method == 'POST':
         form = TimeBlockForm(request.POST, doctor=doctor)
@@ -89,13 +87,13 @@ def doctor_schedule(request):
     })
 
 
-@custom_login_required
+@role_required(User.Role.DOCTOR)
 def confirm_appointment(request, appointment_id):
     """Turn a patient's request into a real appointment: choose a time block, a date and optionally a room."""
     doctor = _current_doctor(request)
     if doctor is None:
-        messages.error(request, "Only doctors can confirm appointments.")
-        return redirect('patients:dashboard')
+        messages.error(request, "Your account has no doctor profile.")
+        return redirect('core:home')
 
     # doctor=doctor in the lookup means a doctor can only open THEIR OWN
     # appointments; anything else is a 404.

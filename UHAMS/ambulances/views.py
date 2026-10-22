@@ -7,12 +7,11 @@ Who can do what:
             Offline only (DRIVER_ALLOWED_STATUSES). Setting it back to Available
             also closes the emergency call it was serving.
 """
-from functools import wraps
-
 from django.contrib import messages
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 
+from core.decorators import role_required
 from core.models import User
 from .forms import AmbulanceForm, AmbulanceStatusForm
 from .models import Ambulance
@@ -24,34 +23,6 @@ DRIVER_ALLOWED_STATUSES = [
     Ambulance.Status.ON_TRIP,
     Ambulance.Status.OFFLINE,
 ]
-
-
-def _get_logged_in_user(request):
-    """The project uses its own session key ('user_id') instead of django.contrib.auth login."""
-    user_id = request.session.get('user_id')
-    if not user_id:
-        return None
-    return User.objects.filter(id=user_id).first()
-
-
-def role_required(*roles):
-    """Login + role check that matches the project's custom session login."""
-    # This app has its own copy of the decorator that exists in core/decorators.py.
-    # It behaves the same way except it does not check is_active or flush the session.
-    def decorator(view_func):
-        @wraps(view_func)
-        def wrapper(request, *args, **kwargs):
-            user = _get_logged_in_user(request)
-            if user is None:
-                return redirect('core:login')
-            if user.role not in roles:
-                messages.error(request, "You do not have permission to access that page.")
-                return redirect('core:home')
-            # Make the user available to the view (and avoid a second lookup there).
-            request.uhams_user = user
-            return view_func(request, *args, **kwargs)
-        return wrapper
-    return decorator
 
 
 def _driver_profile(user):
