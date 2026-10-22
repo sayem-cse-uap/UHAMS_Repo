@@ -22,28 +22,38 @@ this project does not use it. Instead:
 The session itself is a server-side record identified by a random cookie, so
 the browser never holds anything it could tamper with except that random id.
 """
+#django imports
 from django.shortcuts import render, redirect
-
-from .models import User
-
-from core.forms import AccountForm, ChangePasswordForm, LoginForm
-from core.security import password_matches
-from core.decorators import role_required
-from ambulances.models import Ambulance
-from doctors.forms import DoctorSettingsForm
-from doctors.models import DoctorProfile
-from drivers.forms import DriverSettingsForm
-from drivers.models import DriverProfile
-from patients.forms import PatientSettingsForm
-from patients.models import PatientProfile
-from staffs.forms import StaffSettingsForm
-from staffs.models import StaffProfile
 from django.contrib import messages
 
+#Core imports
+from .models import User
+from .forms import AccountForm, ChangePasswordForm, LoginForm
+from .security import password_matches
+from .decorators import role_required
 
+#Ambulance system import
+from ambulances.models import Ambulance
+
+#Doctor imports
+from doctors.forms import DoctorSettingsForm
+from doctors.models import DoctorProfile
+
+#Driver imports
+from drivers.forms import DriverSettingsForm
+from drivers.models import DriverProfile
+
+#Patient imports
+from patients.forms import PatientSettingsForm
+from patients.models import PatientProfile
+
+#Staff imports
+from staffs.forms import StaffSettingsForm
+from staffs.models import StaffProfile
+
+"""Landing page. The template shows different buttons depending on whether
+the visitor is logged in (it reads `logged_in_user` from the context processor)."""
 def home(request):
-    """Landing page. The template shows different buttons depending on whether
-    the visitor is logged in (it reads `logged_in_user` from the context processor)."""
     return render(request, 'home.html')
 
 # Where each kind of user lands right after logging in. The values are URL
@@ -58,6 +68,9 @@ DASHBOARD_BY_ROLE = {
 
 def loginView(request):
     """Show the login form (GET) and process it (POST)."""
+    """ Get request happens first in else block, 
+    when submiting the post request brings all the filled up data back to the loginView 
+    and this time through the if block it actually saves or processes the data. """
     if request.method == 'POST':
         # Bind the submitted data to the form and validate the basic shape
         # (both fields present). This does NOT check the password yet.

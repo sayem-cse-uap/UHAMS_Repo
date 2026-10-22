@@ -1,5 +1,5 @@
 """
-core.models - the one model that every other app hangs off: the User.
+core.models(or .models when working in views.py of core app itself) - the one model that every other app hangs off: the User.
 
 The project does not keep separate login tables for patients, doctors, drivers
 and staff. Instead there is ONE user table (this model) holding everything
