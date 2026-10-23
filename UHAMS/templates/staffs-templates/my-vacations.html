@@ -38,7 +38,7 @@
                     {% elif v.status == 'rejected' %}<span class="badge done">Rejected</span>
                     {% else %}<span class="badge">Pending</span>{% endif %}
                 </td>
-                <td>{{ v.reviewed_by.user.username|default:"-" }}</td>
+                <td>{% if v.reviewed_by %}{% include 'includes/person.html' with person=v.reviewed_by.user label=v.reviewed_by.user.username only %}{% else %}-{% endif %}</td>
                 <td>
                     {% if v.status == 'pending' %}
                     <form method="post">

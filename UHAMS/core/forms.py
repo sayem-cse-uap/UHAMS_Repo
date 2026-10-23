@@ -50,6 +50,46 @@ class AccountForm(forms.ModelForm):
         return phone
 
 
+class ProfilePictureForm(forms.ModelForm):
+    """Upload (or replace) your own profile picture.
+
+    ImageField already refuses anything Pillow cannot open as an image, so a renamed .exe or
+    .html file is rejected. On top of that we only accept a short list of common formats
+    (SVG is deliberately NOT allowed: it can carry scripts) and cap the file size.
+    """
+    MAX_BYTES = 2 * 1024 * 1024                       # 2 MB
+    ALLOWED_FORMATS = {"JPEG", "PNG", "WEBP", "GIF"}  # Pillow's names for the formats
+
+    class Meta:
+        model = User
+        fields = ["profile_picture"]
+        # A plain file input. (The default ClearableFileInput also draws a "currently:" link and a
+        # "Clear" checkbox; the Settings page has its own Remove button instead.)
+        widgets = {"profile_picture": forms.FileInput(attrs={"accept": "image/jpeg,image/png,image/webp,image/gif"})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        field = self.fields["profile_picture"]
+        field.required = True          # pressing "Upload" with no file chosen is an error
+        field.label = "Choose a picture"
+        field.help_text = "JPEG, PNG, WebP or GIF, up to 2 MB. A square picture looks best."
+
+    def clean_profile_picture(self):
+        picture = self.cleaned_data.get("profile_picture")
+        # If the user already has a picture, Django's FileField quietly falls back to it when no
+        # file was chosen, which would make "Upload" with an empty file box look successful.
+        # Check request.FILES ourselves so that case is reported as an error.
+        if self.add_prefix("profile_picture") not in self.files:
+            raise ValidationError("Please choose a picture to upload.")
+        # `picture` is the freshly uploaded file; Django has already opened it with Pillow.
+        image = picture.image
+        if picture.size > self.MAX_BYTES:
+            raise ValidationError("That file is too large. Please choose a picture under 2 MB.")
+        if image.format not in self.ALLOWED_FORMATS:
+            raise ValidationError("Unsupported image type. Please upload a JPEG, PNG, WebP or GIF.")
+        return picture
+
+
 class ChangePasswordForm(forms.Form):
     """Change-password form. Requires the CURRENT password first, so that
     someone who walks up to an unlocked, logged-in computer cannot silently

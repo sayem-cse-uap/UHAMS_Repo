@@ -15,6 +15,7 @@ Layout (every app is namespaced; reverse with e.g. 'patients:dashboard'):
     /doctors/...               doctors     register, dashboard, schedule, appointments/<id>/confirm
     /drivers/...               drivers     register, dashboard
     /ambulances/...            ambulances  list, new, mine, <pk>, <pk>/edit|delete|status
+    /media/...                 uploaded files (profile pictures) - development only
 
 Old URLs are kept alive through UHAMS.legacy_urls (301 redirects).
 
@@ -24,6 +25,8 @@ or redirect('core:login'). That way two apps can both have a page called
 "dashboard" without clashing, and the real URL text can change later without
 having to edit every link.
 """
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 
@@ -48,3 +51,7 @@ urlpatterns = [
     # catches old paths that nothing above matched.
     path('', include('UHAMS.legacy_urls')),
 ]
+
+# Serve uploaded files (profile pictures) under /media/ while developing. static() returns an
+# empty list when DEBUG is False, so this does nothing in production (the web server does it).
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

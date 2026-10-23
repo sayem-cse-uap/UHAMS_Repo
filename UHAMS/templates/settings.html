@@ -1,17 +1,43 @@
 {% extends 'base.html' %}
 {# settings.html - the Settings page shared by all roles (core.views.account_settings). #}
-{# It is made of THREE separate forms, each with a hidden input name="section" so the view knows #}
+{# It is made of separate forms, each with a hidden input name="section" so the view knows #}
 {# which one was submitted: #}
+{#     section=picture        -> upload a profile picture (multipart form: it carries a file) #}
+{#     section=picture-remove -> remove it again (falls back to the default avatar) #}
 {#     section=account   -> name / email / phone #}
 {#     section=profile   -> the role-specific profile (blood group, fee, shift status, availability...) #}
 {#     section=password  -> change password #}
-{# Variables from the view: account_user, account_form, profile_form (None if no profile), #}
+{# Variables from the view: account_user, picture_form, account_form, profile_form (None if no profile), #}
 {# profile_rows (read-only label/value pairs), password_form. #}
 
 {% block title %} UHAMS - Settings {% endblock %}
 
 {% block content %}
     <h1>Settings</h1>
+
+    {# --- 0. Profile picture: current picture, upload form, and (if one is set) a remove button --- #}
+    <section class="settings-section">
+        <h2>Profile picture</h2>
+        <div class="avatar-editor">
+            <img class="avatar-lg" src="{{ account_user.avatar_url }}" alt="Your current profile picture">
+            <div class="avatar-forms">
+                {# enctype="multipart/form-data" is REQUIRED for file uploads; without it the file never arrives. #}
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="section" value="picture">
+                    {{ picture_form.as_p }}
+                    <button type="submit">Upload picture</button>
+                </form>
+                {% if account_user.profile_picture %}
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="section" value="picture-remove">
+                    <button type="submit" class="secondary">Remove picture</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </section>
 
     {# --- 1. Account: read-only username + role, then the editable account form --- #}
     <section class="settings-section">

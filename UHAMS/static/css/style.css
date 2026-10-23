@@ -222,6 +222,30 @@ main > p > a:only-child { font-weight: 500; }
 .settings-section h2, .panel h2 { margin: 0 0 12px; }
 .settings-section form + form { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
 
+/* Avatar + name inside table cells (templates/includes/person.html). */
+.person { display: inline-flex; align-items: center; gap: 10px; vertical-align: middle; }
+.avatar-sm {
+    width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex: none;
+    border: 1px solid var(--line); background: var(--surface);
+}
+.person-text { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.person-text small { color: var(--muted); }
+
+/* Profile picture editor on the Settings page: big round preview next to the upload form. */
+.avatar-editor { display: flex; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
+.avatar-lg {
+    width: 112px; height: 112px; border-radius: 50%; object-fit: cover; flex: none;
+    border: 3px solid var(--line); background: var(--surface);
+}
+.avatar-forms { flex: 1; min-width: 240px; }
+input[type="file"] { font: inherit; max-width: 100%; }
+input[type="file"]::file-selector-button {
+    font: inherit; font-weight: 600; margin-right: 12px; padding: 7px 14px; cursor: pointer;
+    background: var(--teal-tint); color: var(--teal-dark);
+    border: 1px solid var(--teal); border-radius: var(--radius);
+}
+form p .helptext { color: var(--muted); font-size: 0.85rem; font-weight: 400; }
+
 /* ---------- Summary tiles ---------- */
 /* Responsive grid: as many 150px+ columns as fit, sharing the width equally. */
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 20px 0 8px; }

@@ -187,6 +187,13 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
+# Media files (files uploaded by users, e.g. profile pictures)
+# Unlike static files (part of the code), these are created while the site runs. They are stored
+# in <project>/media/ and served under /media/. In development urls.py serves them for you; in
+# production the web server (nginx, Apache, ...) must serve MEDIA_ROOT at MEDIA_URL instead.
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 

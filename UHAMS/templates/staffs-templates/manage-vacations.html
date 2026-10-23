@@ -27,7 +27,7 @@
         <tbody>
         {% for v in records %}
             <tr>
-                <td><a href="{% url 'staffs:member-detail' v.staff.pk %}">{{ v.staff.user.get_full_name|default:v.staff.user.username }}</a></td>
+                <td><a href="{% url 'staffs:member-detail' v.staff.pk %}">{% include 'includes/person.html' with person=v.staff.user only %}</a></td>
                 <td>{{ v.start_date|date:"D, d M Y" }}</td>
                 <td>{{ v.end_date|date:"D, d M Y" }}</td>
                 <td>{{ v.reason|default:"-" }}</td>

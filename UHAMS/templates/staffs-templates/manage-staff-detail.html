@@ -98,7 +98,7 @@
             <tbody>
             {% for p in assigned_patients %}
                 <tr>
-                    <td>{{ p.user.get_full_name|default:p.user.username }}</td>
+                    <td>{% include 'includes/person.html' with person=p.user only %}</td>
                     <td>{{ p.bloodGroup }}</td>
                     <td>
                         <form method="post">
@@ -141,7 +141,7 @@
                     <td>{{ a.assignment }}</td>
                     <td>{{ a.started_at|date:"d M Y H:i" }}</td>
                     <td>{{ a.ended_at|date:"d M Y H:i"|default:"current" }}</td>
-                    <td>{{ a.assigned_by.user.username|default:"-" }}</td>
+                    <td>{% if a.assigned_by %}{% include 'includes/person.html' with person=a.assigned_by.user label=a.assigned_by.user.username only %}{% else %}-{% endif %}</td>
                 </tr>
             {% endfor %}
             </tbody>

@@ -28,7 +28,7 @@ from django.contrib import messages
 
 #Core imports
 from .models import User
-from .forms import AccountForm, ChangePasswordForm, LoginForm
+from .forms import AccountForm, ChangePasswordForm, LoginForm, ProfilePictureForm
 from .security import password_matches
 from .decorators import role_required
 
@@ -169,10 +169,18 @@ def _role_profile(user):
     return None, None, []
 
 
+def _delete_picture_file(name):
+    """Delete a stored profile picture file - unless another account still points at it."""
+    if name and not User.objects.filter(profile_picture=name).exists():
+        User._meta.get_field("profile_picture").storage.delete(name)
+
+
 @role_required()   # any logged-in user, whatever the role
 def account_settings(request):
-    """The Settings page. It contains THREE independent forms on one page:
+    """The Settings page. It contains FOUR independent forms on one page:
 
+        section=picture  -> upload a new profile picture (ProfilePictureForm; needs request.FILES)
+        section=picture-remove -> go back to the default picture (no form fields, just a button)
         section=account  -> name, email, phone        (AccountForm)
         section=profile  -> role-specific details     (the role's SettingsForm)
         section=password -> change password           (ChangePasswordForm)
@@ -188,6 +196,10 @@ def account_settings(request):
     section = request.POST.get('section') if request.method == 'POST' else None
 
     # Passing None as the data makes a form "unbound" (just displays current values).
+    # Uploaded files arrive in request.FILES (not request.POST), so the picture form needs both.
+    picture_form = ProfilePictureForm(request.POST if section == 'picture' else None,
+                                      request.FILES if section == 'picture' else None,
+                                      instance=user, prefix='picture')
     account_form = AccountForm(request.POST if section == 'account' else None,
                                instance=user, prefix='account')
     password_form = ChangePasswordForm(user, request.POST if section == 'password' else None,
@@ -200,6 +212,21 @@ def account_settings(request):
     if request.method == 'POST':
         # Post/Redirect/Get: after a successful save we redirect back to the
         # page, so pressing F5 does not resubmit the form.
+        if section == 'picture':
+            old_name = User.objects.filter(pk=user.pk).values_list('profile_picture', flat=True).first()
+            if picture_form.is_valid():
+                picture_form.save()
+                if old_name != user.profile_picture.name:
+                    _delete_picture_file(old_name)       # don't leave the replaced file behind
+                messages.success(request, "Your profile picture was updated.")
+                return redirect('core:settings')
+        if section == 'picture-remove':
+            old_name = user.profile_picture.name
+            user.profile_picture = ''
+            user.save(update_fields=['profile_picture'])
+            _delete_picture_file(old_name)
+            messages.success(request, "Your profile picture was removed.")
+            return redirect('core:settings')
         if section == 'account' and account_form.is_valid():
             account_form.save()
             messages.success(request, "Your account details were updated.")
@@ -221,6 +248,7 @@ def account_settings(request):
     # header of the page keeps showing the real, saved values.)
     return render(request, 'settings.html', {
         'account_user': User.objects.get(pk=user.pk),
+        'picture_form': picture_form,
         'account_form': account_form,
         'profile_form': profile_form,
         'profile_rows': profile_rows,

@@ -42,7 +42,7 @@
                     {% else %}<span class="badge done">{{ call.get_status_display }}</span>{% endif %}
                 </td>
                 <td>{{ call.ambulance.ambulance_id|default:"-" }}</td>
-                <td>{{ call.handled_by.user.username|default:"-" }}</td>
+                <td>{% if call.handled_by %}{% include 'includes/person.html' with person=call.handled_by.user label=call.handled_by.user.username only %}{% else %}-{% endif %}</td>
                 <td><a class="btn-link" href="{% url 'staffs:call-detail' call.pk %}">Open</a></td>
             </tr>
         {% endfor %}

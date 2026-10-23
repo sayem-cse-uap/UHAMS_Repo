@@ -19,7 +19,7 @@
         <tbody>
         {% for appt in appointments %}
             <tr>
-                <td>{{ appt.doctor.user.get_full_name|default:appt.doctor.user.username }} ({{ appt.doctor.specialization }})</td>
+                <td>{% include 'includes/person.html' with person=appt.doctor.user sub=appt.doctor.specialization only %}</td>
                 <td>
                     {# Status chip colours follow the project palette: amber = waiting for the doctor, #}
                     {# green = confirmed, grey = done. #}
@@ -56,7 +56,7 @@
         <tbody>
         {% for doc in doctors %}
             <tr>
-                <td>{{ doc.user.get_full_name|default:doc.user.username }}</td>
+                <td>{% include 'includes/person.html' with person=doc.user only %}</td>
                 <td>{{ doc.specialization }}</td>
                 <td>{{ doc.consultationFee }}</td>
                 <td>

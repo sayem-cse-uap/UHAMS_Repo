@@ -17,7 +17,7 @@
         <tbody>
         {% for appt in pending_appointments %}
             <tr>
-                <td>{{ appt.patient.user.get_full_name|default:appt.patient.user.username }}</td>
+                <td>{% include 'includes/person.html' with person=appt.patient.user only %}</td>
                 <td>{{ appt.date|date:"D, d M Y" }}</td>
                 <td>{{ appt.reason|default:"-" }}</td>
                 <td><a class="btn-link" href="{% url 'doctors:confirm-appointment' appt.id %}">Confirm and assign time</a></td>
@@ -37,7 +37,7 @@
         <tbody>
         {% for appt in confirmed_appointments %}
             <tr>
-                <td>{{ appt.patient.user.get_full_name|default:appt.patient.user.username }}</td>
+                <td>{% include 'includes/person.html' with person=appt.patient.user only %}</td>
                 <td>{{ appt.date|date:"D, d M Y" }}</td>
                 <td>{% if appt.time_block %}{{ appt.time_block.start_time|time:"h:i A" }} - {{ appt.time_block.end_time|time:"h:i A" }}{% else %}-{% endif %}</td>
                 <td>{{ appt.room_number }}</td>

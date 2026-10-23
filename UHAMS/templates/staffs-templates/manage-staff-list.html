@@ -37,7 +37,7 @@
         <tbody>
         {% for s in staff_members %}
             <tr>
-                <td>{{ s.user.get_full_name|default:s.user.username }}<br><small>{{ s.user.username }}</small></td>
+                <td>{% include 'includes/person.html' with person=s.user sub=s.user.username only %}</td>
                 <td>{{ s.title }}</td>
                 <td>{{ s.get_role_display }}</td>
                 <td>{{ s.department }}</td>

@@ -1,0 +1,7 @@
+{# includes/person.html - a small round avatar followed by a person's name, for use inside table cells. #}
+{# Use it like:  {% include 'includes/person.html' with person=appt.doctor.user only %} #}
+{#   person  (required) the core.User to show; the picture comes from person.avatar_url #}
+{#   label   (optional) text to show instead of the full name (falls back to the username if no name is set) #}
+{#   sub     (optional) a second, smaller line under the name, e.g. a specialization #}
+{# "only" stops the surrounding page's variables leaking in (e.g. a stray `label`). #}
+<span class="person"><img class="avatar-sm" src="{{ person.avatar_url }}" alt=""><span class="person-text"><span class="person-name">{% if label %}{{ label }}{% else %}{{ person.get_full_name|default:person.username }}{% endif %}</span>{% if sub %}<small>{{ sub }}</small>{% endif %}</span></span>

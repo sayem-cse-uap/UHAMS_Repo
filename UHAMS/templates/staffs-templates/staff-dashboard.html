@@ -43,8 +43,8 @@
         <tbody>
         {% for item in appointments %}
             <tr>
-                <td>{{ item.doctor.user.username }}</td>
-                <td>{{ item.patient.user.username }}</td>
+                <td>{% include 'includes/person.html' with person=item.doctor.user label=item.doctor.user.username only %}</td>
+                <td>{% include 'includes/person.html' with person=item.patient.user label=item.patient.user.username only %}</td>
                 <td>{{ item.date|date:"D, d M Y" }}</td>
                 <td><span class="badge {% if item.status == 'DONE' %}done{% elif item.status != 'PENDING_CONFIRMATION' %}confirmed{% endif %}">{{ item.get_status_display }}</span></td>
                 <td>{{ item.room_number }}</td>
@@ -59,7 +59,7 @@
     {% if doctors %}
     <div class="table-wrap"><table class="data-table">
         <thead><tr><th>Username</th><th>Specialization</th></tr></thead>
-        <tbody>{% for item in doctors %}<tr><td>{{ item.user.username }}</td><td>{{ item.specialization }}</td></tr>{% endfor %}</tbody>
+        <tbody>{% for item in doctors %}<tr><td>{% include 'includes/person.html' with person=item.user label=item.user.username only %}</td><td>{{ item.specialization }}</td></tr>{% endfor %}</tbody>
     </table></div>
     {% else %}<p>No doctors yet.</p>{% endif %}
 
@@ -70,7 +70,7 @@
         <thead><tr><th>Username</th><th>Blood group</th><th>Assigned staff</th></tr></thead>
         <tbody>
         {% for item in patients %}
-            <tr><td>{{ item.user.username }}</td><td>{{ item.bloodGroup }}</td><td>{{ item.assigned_staff.user.username|default:"-" }}</td></tr>
+            <tr><td>{% include 'includes/person.html' with person=item.user label=item.user.username only %}</td><td>{{ item.bloodGroup }}</td><td>{% if item.assigned_staff %}{% include 'includes/person.html' with person=item.assigned_staff.user label=item.assigned_staff.user.username only %}{% else %}-{% endif %}</td></tr>
         {% endfor %}
         </tbody>
     </table></div>
@@ -84,7 +84,7 @@
         <tbody>
         {% for item in staffs %}
             <tr>
-                <td>{{ item.user.username }}</td><td>{{ item.title }}</td><td>{{ item.get_role_display }}</td>
+                <td>{% include 'includes/person.html' with person=item.user label=item.user.username only %}</td><td>{{ item.title }}</td><td>{{ item.get_role_display }}</td>
                 <td>{{ item.department }}</td><td>{% if item.availability_status %}<span class="badge confirmed">Yes</span>{% else %}<span class="badge done">No</span>{% endif %}</td>
             </tr>
         {% endfor %}
@@ -102,7 +102,7 @@
             <tr>
                 <td><a href="{% url 'staffs:call-detail' call.pk %}">{{ call.location }}</a></td><td>{% if call.status == 'pending' %}<span class="badge alert">Pending</span>{% elif call.status == 'dispatched' %}<span class="badge confirmed">Dispatched</span>{% else %}<span class="badge done">{{ call.get_status_display }}</span>{% endif %}</td>
                 <td>{{ call.ambulance.ambulance_id|default:"-" }}</td>
-                <td>{{ call.handled_by.user.username|default:"-" }}</td>
+                <td>{% if call.handled_by %}{% include 'includes/person.html' with person=call.handled_by.user label=call.handled_by.user.username only %}{% else %}-{% endif %}</td>
                 <td>{{ call.created_at|date:"d M Y H:i" }}</td>
             </tr>
         {% endfor %}

@@ -14,8 +14,23 @@ details:
 
 This is activated by AUTH_USER_MODEL = "core.User" in settings.py.
 """
-from django.db import models
+import uuid
+from pathlib import Path
+
 from django.contrib.auth.models import AbstractUser
+from django.db import models
+from django.templatetags.static import static
+
+
+def profile_picture_path(instance, filename):
+    """Where an uploaded profile picture is stored, relative to MEDIA_ROOT.
+
+    The original file name is thrown away and replaced by a random one. That avoids two users'
+    files colliding, stops a crafted file name from escaping the folder, and means a browser
+    never serves a stale cached picture after the user uploads a new one (new file = new URL).
+    The extension is kept (lower-cased) so the web server sends the right content type.
+    """
+    return f"profile_pictures/{uuid.uuid4().hex}{Path(filename).suffix.lower()}"
 
 
 # Create your models here.
@@ -42,3 +57,15 @@ class User(AbstractUser):
     # Contact number. Not blank=True at the database level, but the settings
     # form (core/forms.py -> AccountForm) makes it optional and validates it.
     phone = models.CharField(max_length=20)
+
+    # The user's own profile picture (shown in the sidebar and on the Settings page). Optional:
+    # until one is uploaded, `avatar_url` falls back to a neutral placeholder. Files go to
+    # MEDIA_ROOT/profile_pictures/ (see settings.py). ImageField needs the Pillow package.
+    profile_picture = models.ImageField(upload_to=profile_picture_path, blank=True)
+
+    @property
+    def avatar_url(self):
+        """URL of the picture to display: the uploaded one, else the default placeholder."""
+        if self.profile_picture:
+            return self.profile_picture.url
+        return static('images/default-avatar.svg')
